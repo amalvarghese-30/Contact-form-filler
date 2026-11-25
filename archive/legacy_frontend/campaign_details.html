@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Campaign Details</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #fff;
+      --muted: #6b7280;
+      --text: #0f172a;
+      --border: #e5e7eb;
+      --shadow: 0 8px 24px rgba(15, 23, 42, .08);
+      --brand: #2563eb;
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: var(--bg);
+      color: var(--text)
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 12px
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 700
+    }
+
+    .btn-primary {
+      background: var(--brand);
+      color: #fff;
+      border-color: #dbeafe
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden
+    }
+
+    .bar>div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--brand), #60a5fa)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px
+    }
+
+    th,
+    td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left
+    }
+
+    th {
+      background: #f8fafc;
+      color: #475569;
+      position: sticky;
+      top: 0
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 800
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="row" style="margin-bottom:12px">
+      <div>
+        <div style="font-weight:900;font-size:20px" id="title">Campaign Details</div>
+        <div class="muted" id="subtitle">Loading...</div>
+      </div>
+      <div class="row" style="gap:8px">
+        <button class="btn" onclick="goBack()">Back</button>
+        <button class="btn btn-primary" id="btnStart" onclick="startRun()">▶ Start</button>
+        <button class="btn" id="btnPause" onclick="pauseRun()">⏸ Pause</button>
+        <button class="btn btn-primary" id="btnContinue" onclick="startRun()">▶ Continue</button>
+        <button class="btn" id="btnRestart" onclick="startRun()">🔄 Restart</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <div class="muted">Status</div>
+          <div><span class="pill" id="statusPill">-</span></div>
+        </div>
+        <div>
+          <div class="muted">Progress</div>
+          <div id="progressText">0 / 0</div>
+        </div>
+        <div>
+          <div class="muted">Remaining</div>
+          <div id="remainingText">0</div>
+        </div>
+        <div>
+          <div class="muted">Success</div>
+          <div id="successText">0</div>
+        </div>
+        <div>
+          <div class="muted">Failed</div>
+          <div id="failedText">0</div>
+        </div>
+        <div>
+          <div class="muted">CAPTCHA</div>
+          <div id="captchaText">0</div>
+        </div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="bar">
+        <div id="barFill"></div>
+      </div>
+      <div class="muted" style="margin-top:8px" id="errorText"></div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:900;margin-bottom:10px">Target websites</div>
+
+      <!-- No scrolling. Pagination below. -->
+      <div style="border-radius:12px;border:1px solid var(--border)">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Website</th>
+            </tr>
+          </thead>
+          <tbody id="sitesBody">
+            <tr>
+              <td colspan="2">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="row" style="margin-top:10px; justify-content:flex-end;">
+        <div class="muted" id="pageInfo">Page 1</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" onclick="prevPage()">Prev</button>
+          <button class="btn" onclick="nextPage()">Next</button>
+        </div>
+      </div>
+
+      <div class="muted" style="margin-top:10px">
+        Note: per-website “done/captcha” flags need backend support (currently only totals are available).
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Must match your analytics.html
+    const APIBASE = "http://127.0.0.1:8000/api";
+
+    function apiUrl(path) {
+      return APIBASE.replace(/\/+$/, "") + "/" + String(path).replace(/^\/+/, "");
+    }
+    function qs(k) { return new URLSearchParams(location.search).get(k); }
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+    async function safeFetchJSON(path) {
+      const r = await fetch(apiUrl(path));
+      const t = await r.text();
+      let j = null;
+      try { j = t ? JSON.parse(t) : null; } catch (e) { }
+      if (!r.ok) throw new Error((j && (j.detail || j.message)) || (r.status + " " + r.statusText));
+      return j;
+    }
+
+    const campaignId = Number(qs("id") || qs("campaignId"));
+    let timer = null;
+
+    // Pagination state
+    let allSites = [];
+    let page = 1;
+    const PAGE_SIZE = 20;
+
+    function goBack() {
+      location.href = "analytics.html#campaigns";
+    }
+
+    function renderSitesPage() {
+      const total = allSites.length;
+      const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      page = Math.min(Math.max(1, page), totalPages);
+
+      const start = (page - 1) * PAGE_SIZE;
+      const end = Math.min(total, start + PAGE_SIZE);
+
+      const rows = [];
+      for (let i = start; i < end; i++) {
+        rows.push(`<tr><td>${i + 1}</td><td>${esc(allSites[i])}</td></tr>`);
+      }
+
+      document.getElementById("sitesBody").innerHTML =
+        rows.length ? rows.join("") : `<tr><td colspan="2">No websites.</td></tr>`;
+
+      if (total === 0) {
+        document.getElementById("pageInfo").textContent = "Page 1 / 1";
+      } else {
+        document.getElementById("pageInfo").textContent =
+          `Page ${page} / ${totalPages} (showing ${start + 1}-${end} of ${total})`;
+      }
+    }
+
+    function nextPage() { page += 1; renderSitesPage(); }
+    function prevPage() { page -= 1; renderSitesPage(); }
+
+    async function loadCampaign() {
+      const c = await safeFetchJSON(`campaigns/${campaignId}`);
+      document.getElementById("title").textContent = `Campaign ${c.id}: ${c.name || ""}`;
+      document.getElementById("subtitle").textContent = `Targets: ${(c.websites || []).length}`;
+
+      allSites = (c.websites || [])
+        .map(w => (w.website_url || w.websiteUrl || w.websiteurl || "").trim())
+        .filter(Boolean);
+
+      page = 1;
+      renderSitesPage();
+    }
+
+    function renderStatus(st) {
+      const total = Number(st.total || 0);
+      const status = String(st.status || 'idle').toLowerCase();
+      // Fix: For completed campaigns, ensure progress equals total
+      const progress = status === 'completed'
+        ? total
+        : Number(st.progress || 0);
+      const remaining = Math.max(0, total - progress);
+      const pct = total ? Math.min(100, Math.round(progress / total * 100)) : 0;
+
+      document.getElementById("statusPill").textContent = String(st.status || "idle").toUpperCase();
+      document.getElementById("progressText").textContent = `${progress} / ${total} (${pct}%)`;
+      document.getElementById("remainingText").textContent = String(remaining);
+      document.getElementById("barFill").style.width = pct + "%";
+
+      const r = st.results || {};
+      document.getElementById("successText").textContent = String(r.success ?? 0);
+      document.getElementById("failedText").textContent = String(r.failed ?? 0);
+      document.getElementById("captchaText").textContent = String(r.captcha ?? 0);
+
+      document.getElementById("errorText").textContent = st.error ? ("Error: " + st.error) : "";
+
+      // Update button visibility based on status
+      updateButtons(status);
+    }
+
+    async function poll() {
+      const st = await safeFetchJSON(`campaigns/${campaignId}/status`);
+      renderStatus(st);
+    }
+
+    async function pauseRun() {
+      await fetch(apiUrl(`campaigns/${campaignId}/pause`), { method: "POST" });
+      await poll();
+    }
+
+    function updateButtons(status) {
+      const btnStart = document.getElementById('btnStart');
+      const btnPause = document.getElementById('btnPause');
+      const btnContinue = document.getElementById('btnContinue');
+
+      if (status === 'running' || status === 'scraping' || status === 'filling' || status === 'clustering') {
+        btnStart.style.display = 'none';
+        btnPause.style.display = 'inline-block';
+        btnContinue.style.display = 'none';
+      } else if (status === 'paused') {
+        btnStart.style.display = 'none';
+        btnPause.style.display = 'none';
+        btnContinue.style.display = 'inline-block';
+      } else {
+        btnStart.style.display = 'inline-block';
+        btnPause.style.display = 'none';
+        btnContinue.style.display = 'none';
+      }
+    }
+
+    async function startRun() {
+      await fetch(apiUrl(`campaigns/${campaignId}/start`), { method: "POST" });
+      await poll();
+    }
+
+    if (!campaignId) {
+      alert("Missing campaign id. Use: campaign_details.html?id=3");
+    } else {
+      loadCampaign().catch(e => alert(e.message));
+      poll().catch(() => { });
+      timer = setInterval(() => poll().catch(() => { }), 1200);
+    }
+  </script>
+</body>
+
+</html>

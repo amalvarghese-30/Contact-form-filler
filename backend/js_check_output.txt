@@ -1,0 +1,81 @@
+﻿python : Traceback (most recent call last):
+At line:1 char:1
++ python check_js_blocking.py 2>&1 | 
+Out-File -FilePath js_check_output ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (Traceback (most recent call last)::  
+  String) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+  File 
+"C:\xampp\htdocs\contact-form-filler - 
+latest\backend\check_js_blocking.py", line 
+50, in <module>
+    asyncio.run(check_js())
+  File "C:\Users\GAURAV\AppData\Local\Progr
+ams\Python\Python312\Lib\asyncio\runners.py
+", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\GAURAV\AppData\Local\Progr
+ams\Python\Python312\Lib\asyncio\runners.py
+", line 118, in run
+    return 
+self._loop.run_until_complete(task)
+           
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\GAURAV\AppData\Local\Progr
+ams\Python\Python312\Lib\asyncio\base_event
+s.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File 
+"C:\xampp\htdocs\contact-form-filler - 
+latest\backend\check_js_blocking.py", line 
+17, in check_js
+    js_info = await page.evaluate("""
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\GAURAV\AppData\Local\Progr
+ams\Python\Python312\Lib\site-packages\play
+wright\async_api\_generated.py", line 
+8563, in evaluate
+    await self._impl_obj.evaluate(
+  File "C:\Users\GAURAV\AppData\Local\Progr
+ams\Python\Python312\Lib\site-packages\play
+wright\_impl\_page.py", line 464, in 
+evaluate
+    return await 
+self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
+  File "C:\Users\GAURAV\AppData\Local\Progr
+ams\Python\Python312\Lib\site-packages\play
+wright\_impl\_frame.py", line 320, in 
+evaluate
+    await self._channel.send(
+  File "C:\Users\GAURAV\AppData\Local\Progr
+ams\Python\Python312\Lib\site-packages\play
+wright\_impl\_connection.py", line 69, in 
+send
+    return await 
+self._connection.wrap_api_call(
+           
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\GAURAV\AppData\Local\Progr
+ams\Python\Python312\Lib\site-packages\play
+wright\_impl\_connection.py", line 559, in 
+wrap_api_call
+    raise rewrite_error(error, 
+f"{parsed_st['apiName']}: {error}") from 
+None
+playwright._impl._errors.Error: 
+Page.evaluate: ReferenceError: 
+getEventListeners is not defined
+    at eval (eval at evaluate (:290:30), 
+<anonymous>:7:44)
+    at UtilityScript.evaluate 
+(<anonymous>:297:18)
+    at UtilityScript.<anonymous> 
+(<anonymous>:1:44)

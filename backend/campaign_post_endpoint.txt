@@ -1,0 +1,65 @@
+# Add this endpoint after line 720 in fastapi_backend.py
+
+from pydantic import BaseModel
+from typing import List, Optional
+
+class CampaignCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    sender_name: Optional[str] = ""
+    sender_email: Optional[str] = ""
+    subject_line: Optional[str] = ""
+    message_body: Optional[str] = ""
+    max_websites: Optional[int] = 50
+    targets: List[str] = []
+
+@app.post("/api/campaigns")
+def create_campaign(campaign: CampaignCreate):
+    """Create a new campaign with target websites"""
+    conn = getconn()
+    cur = conn.cursor(dictionary=True)
+    try:
+        # Insert campaign
+        cur.execute(
+            f"""
+            INSERT INTO {CAMPAIGNS_TABLE} 
+            (name, description, sender_name, sender_email, subject_line, message_body, max_websites, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'draft')
+            """,
+            (
+                campaign.name,
+                campaign.description,
+                campaign.sender_name,
+                campaign.sender_email,
+                campaign.subject_line,
+                campaign.message_body,
+                campaign.max_websites
+            )
+        )
+        campaign_id = cur.lastrowid
+        
+        # Insert target websites
+        if campaign.targets:
+            for url in campaign.targets:
+                cur.execute(
+                    f"""
+                    INSERT INTO {CAMPAIGN_WEBSITES_TABLE} (campaign_id, website_url)
+                    VALUES (%s, %s)
+                    """,
+                    (campaign_id, url.strip())
+                )
+        
+        conn.commit()
+        
+        return {
+            "id": campaign_id,
+            "name": campaign.name,
+            "status": "draft",
+            "targets": len(campaign.targets)
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()

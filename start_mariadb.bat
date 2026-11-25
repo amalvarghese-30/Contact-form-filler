@@ -1,0 +1,3 @@
+@echo off
+echo Starting portable MariaDB 10.11 on 127.0.0.1:3306...
+"%USERPROFILE%\.mariadb\mariadb-10.11.20-winx64\bin\mariadbd.exe" --datadir="%USERPROFILE%\.mariadb\data" --port=3306 --bind-address=127.0.0.1 --console

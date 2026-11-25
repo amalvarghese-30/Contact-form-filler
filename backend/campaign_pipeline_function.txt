@@ -1,0 +1,183 @@
+async def run_campaign_pipeline(campaign_id: int, run_id: int):
+    """
+    Two-phase campaign pipeline:
+    
+    Phase 1 (Scraping + Mapping): 
+        - Navigate to contact pages
+        - Discover form fields
+        - Normalize field names  
+        - Map fields to concepts (email, name, message, etc.)
+        - Detect captcha/dead sites
+        - No submission - just collects form structure
+                        
+    Phase 2 (Filling + Submit):  
+        - Fill discovered forms with user data
+        - Submit forms
+        - Collect network responses
+    """
+    try:
+        set_campaign_status(campaign_id, "running")
+
+        # Load campaign + targets
+        conn = getconn()
+        cur = conn.cursor(dictionary=True)
+        try:
+            cur.execute(f"SELECT * FROM {CAMPAIGNS_TABLE} WHERE id=%s", (campaign_id,))
+            camp = cur.fetchone() or {}
+
+            cur.execute(
+                f"SELECT website_id, website_url FROM {CAMPAIGN_WEBSITES_TABLE} WHERE campaign_id=%s",
+                (campaign_id,),
+            )
+            targets = cur.fetchall() or []
+        finally:
+            cur.close()
+            conn.close()
+
+        website_ids = [int(t["website_id"]) for t in targets if t.get("website_id") is not None]
+        urls = [str(t.get("website_url") or "").strip() for t in targets if str(t.get("website_url") or "").strip()]
+
+        max_websites = int(camp.get("max_websites") or 50)
+        planned_urls = urls[:max_websites]
+        planned_total = len(planned_urls)
+
+        update_run(run_id, status="running", progress=0, total=planned_total)
+
+        if is_paused(campaign_id):
+            update_run(run_id, status="paused", progress=0, total=planned_total)
+            return
+
+        # =====================================
+        # PHASE 1: SCRAPE (Discover form fields)
+        # =====================================
+        update_run(run_id, status="scraping", progress=0, total=planned_total)
+        
+        scrape_results = []
+        scraped_count = 0
+        agg = {"total": 0, "success": 0, "failed": 0, "captcha": 0, "scraped": 0, "noform": 0}
+        
+        for idx, url in enumerate(planned_urls):
+            if is_paused(campaign_id):
+                update_run(run_id, status="paused", progress=scraped_count, total=planned_total)
+                return
+            
+            one_userdata = {"websites": [url]}
+            scrape_result = await scrapeallforms(one_userdata, 1)
+            
+            if isinstance(scrape_result, dict):
+                details = scrape_result.get("details") or []
+                if details:
+                    scrape_results.append(details[0])
+                    detail_status = str(details[0].get("status") or "").lower()
+                    if detail_status == "captcha":
+                        agg["captcha"] += 1
+                    elif detail_status == "noform":
+                        agg["noform"] += 1
+                    elif detail_status == "scraped":
+                        agg["scraped"] += 1
+            
+            scraped_count += 1
+            agg["total"] = scraped_count
+            update_run(run_id, status="scraping", progress=scraped_count, total=planned_total, results=db_json(agg))
+
+        if is_paused(campaign_id):
+            update_run(run_id, status="paused", progress=scraped_count, total=planned_total)
+            return
+
+        # ---- CLUSTER (optional) ----
+        if cluster_websites is not None and website_ids:
+            update_run(run_id, status="clustering", progress=0, total=planned_total)
+
+            def on_cluster_progress(done, total, wid):
+                update_run(run_id, status="clustering", progress=min(done, planned_total), total=planned_total)
+
+            try:
+                cluster_websites(website_ids, on_progress=on_cluster_progress)
+            except TypeError:
+                cluster_websites(website_ids)
+
+        if is_paused(campaign_id):
+            update_run(run_id, status="paused", progress=0, total=planned_total)
+            return
+
+        # ---- Build userdata ----
+        base_userdata = {}
+        if camp.get("sender_name"):
+            base_userdata["fullname"] = camp["sender_name"]
+            base_userdata["name"] = camp["sender_name"]
+        if camp.get("sender_email"):
+            base_userdata["email"] = camp["sender_email"]
+        if camp.get("subject_line"):
+            base_userdata["subject"] = camp["subject_line"]
+        if camp.get("message_body"):
+            base_userdata["message"] = camp["message_body"]
+
+        # =====================================
+        # PHASE 2: FILL + SUBMIT
+        # =====================================
+        update_run(run_id, status="filling", progress=0, total=planned_total)
+
+        done = 0
+
+        # Use scraped results to know which URLs have forms
+        urls_with_forms = []
+        for sr in scrape_results:
+            status = str(sr.get("status") or "").lower()
+            if status == "scraped":
+                url = sr.get("url") or sr.get("contact_url") or ""
+                if url:
+                    urls_with_forms.append({
+                        "url": url,
+                        "mapping": sr.get("mapping") or {},
+                        "website_id": sr.get("website_id"),
+                    })
+            elif status == "noform":
+                agg["noform"] += 1
+            elif status == "captcha":
+                agg["captcha"] += 1
+
+        # Phase 2: Fill and submit only URLs with discovered forms
+        for site_info in urls_with_forms:
+            if is_paused(campaign_id):
+                update_run(run_id, status="paused", progress=done, total=planned_total)
+                return
+
+            url = site_info["url"]
+            one_userdata = dict(base_userdata)
+            one_userdata["websites"] = [url]
+
+            results_one = await fillallforms(one_userdata, 1, mode="fill")
+
+            if isinstance(results_one, dict):
+                agg["total"] += int(results_one.get("total") or 0)
+                agg["success"] += int(results_one.get("success") or 0)
+                agg["failed"] += int(results_one.get("failed") or 0)
+                agg["captcha"] += int(results_one.get("captcha") or 0)
+
+            done += 1
+            update_run(run_id, status="filling", progress=done, total=len(urls_with_forms), results=db_json(agg))
+
+        # Add the count of sites that were scraped but didn't have forms
+        agg["scraped"] = len(scrape_results)
+        agg["total"] = len(scrape_results)
+
+        update_run(
+            run_id,
+            status="completed",
+            progress=planned_total,
+            total=planned_total,
+            results=db_json(agg),
+            finished_at=datetime.now(),
+        )
+        set_campaign_status(campaign_id, "completed")
+
+    except Exception as e:
+        traceback.print_exc()
+        update_run(
+            run_id,
+            status="error",
+            error=str(e),
+            results=db_json({"total": 0, "success": 0, "failed": 0, "captcha": 0, "error": str(e)}),
+            finished_at=datetime.now(),
+        )
+        set_campaign_status(campaign_id, "error")

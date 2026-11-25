@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Operations Hub</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --text:#0f172a;
+      --border:#e5e7eb;
+      --shadow:0 8px 24px rgba(15, 23, 42, 0.08);
+      --brand:#2563eb;
+      --brand-2:#10b981;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    a{ color:inherit; text-decoration:none; }
+
+    /* Topbar */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:rgba(255,255,255,0.85);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+    .topbar-inner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:700;
+      letter-spacing:0.2px;
+    }
+    .brand-badge{
+      width:34px;height:34px;border-radius:10px;
+      background:linear-gradient(135deg,var(--brand),#60a5fa);
+      box-shadow:0 10px 18px rgba(37,99,235,0.25);
+    }
+    .navtabs{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .tab{
+      padding:9px 12px;
+      border-radius:10px;
+      color:#334155;
+      border:1px solid transparent;
+      font-size:14px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      background:#eef2ff;
+      border-color:#dbeafe;
+      color:#1e3a8a;
+      font-weight:600;
+    }
+    .userpill{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .avatar{
+      width:34px;height:34px;border-radius:999px;
+      background:#e2e8f0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      color:#334155;
+      border:1px solid var(--border);
+    }
+
+    /* Pages */
+    .main{ max-width:1200px;margin:0 auto;padding:18px; }
+    .page{ display:none; }
+    .page.active{ display:block; }
+
+    /* Shared card */
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+    }
+
+    /* Dashboard */
+    .container{ max-width:1200px;margin:0 auto; }
+    .header{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:22px 24px;
+      margin-bottom:14px;
+      box-shadow:var(--shadow);
+    }
+    .header h1{ margin:0 0 6px 0;font-size:24px; }
+    .header p{ margin:0;font-size:13px;color:var(--muted); }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .stat-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 18px;
+      box-shadow:var(--shadow);
+    }
+    .stat-label{ font-size:12px;color:var(--muted);margin-bottom:6px; }
+    .stat-value{ font-size:26px;font-weight:750;color:#0f172a; }
+    .section{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:18px 18px 20px 18px;
+      margin-bottom:14px;
+      box-shadow:var(--shadow);
+    }
+    .section h2{
+      font-size:16px;margin:0 0 10px 0;padding-bottom:8px;
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:10px;
+    }
+    table{ width:100%;border-collapse:collapse;font-size:13px; }
+    th,td{ padding:9px 10px;border-bottom:1px solid var(--border);text-align:left; }
+    th{ background:#f8fafc;color:#475569;position:sticky;top:0;z-index:1; }
+    .tag{
+      font-size:11px;padding:2px 8px;border-radius:999px;
+      background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;
+    }
+    .website-item{
+      background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
+      margin-bottom:10px;padding:12px;cursor:pointer;
+    }
+    .website-item:hover{ background:#f1f5f9; }
+    .website-url{ font-weight:650;color:#1d4ed8;margin-bottom:4px; }
+    .website-count{ font-size:12px;color:var(--muted); }
+    .website-fields{
+      display:none;margin-top:10px;padding-top:10px;border-top:1px dashed #cbd5e1;
+    }
+    .website-fields.open{ display:block; }
+    .field-tag{
+      display:inline-block;background:#eef2ff;color:#1e3a8a;border:1px solid #dbeafe;
+      padding:4px 8px;border-radius:999px;margin:4px 4px 4px 0;font-size:12px;
+    }
+    .pager{
+      display:flex;justify-content:flex-end;align-items:center;gap:8px;
+      margin-top:8px;font-size:12px;color:var(--muted);
+    }
+    .pager button{
+      padding:6px 12px;border-radius:999px;border:1px solid var(--border);
+      background:#fff;color:#0f172a;cursor:pointer;font-size:12px;
+    }
+    .pager button:disabled{ opacity:0.5;cursor:default; }
+    .errbox{
+      background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;
+      padding:10px 12px;border-radius:12px;font-size:12px;
+    }
+
+    /* Campaigns page */
+    .page-title{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .page-title h1{ margin:0;font-size:26px; }
+    .page-title p{ margin:6px 0 0 0;color:var(--muted);font-size:13px; }
+
+    .btn-primary{
+      padding:10px 14px;border-radius:10px;border:1px solid #dbeafe;
+      background:var(--brand);color:#fff;cursor:pointer;font-weight:700;
+      box-shadow:0 10px 18px rgba(37,99,235,0.22);
+    }
+    .btn-ghost{
+      padding:8px 12px;border-radius:10px;border:1px solid var(--border);
+      background:#fff;cursor:pointer;font-weight:650;font-size:13px;color:#0f172a;
+    }
+    .btn-secondary{
+      padding:10px 14px;border-radius:10px;border:1px solid #cbd5e1;background:#fff;
+      cursor:pointer;font-weight:700;
+    }
+    .btn-success{
+      padding:10px 14px;border-radius:10px;border:1px solid #bbf7d0;
+      background:var(--brand-2);color:#fff;cursor:pointer;font-weight:800;
+    }
+    .filters{ display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0; }
+    .select{
+      padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+      background:#fff;font-size:13px;color:#0f172a;
+    }
+    .campaign-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:10px; }
+    .campaign-card{ padding:14px; }
+    .campaign-head{ display:flex;align-items:flex-start;justify-content:space-between;gap:10px; margin-bottom:10px; }
+    .campaign-name{ font-weight:800;margin:0;font-size:15px;line-height:1.2; }
+    .pill{
+      font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid #e2e8f0;
+      background:#f8fafc;color:#334155;font-weight:700;white-space:nowrap;
+    }
+    .pill.running{ background:#fffbeb;border-color:#fde68a;color:#92400e; }
+    .pill.completed{ background:#ecfdf5;border-color:#bbf7d0;color:#065f46; }
+    .pill.paused{ background:#f1f5f9;border-color:#e2e8f0;color:#475569; }
+    .pill.error{ background:#fef2f2;border-color:#fecaca;color:#991b1b; }
+
+    .campaign-progress{ margin:8px 0 10px 0;color:#334155;font-size:13px; display:flex;align-items:center;justify-content:space-between;gap:10px; }
+    .bar{ height:8px;border-radius:999px;background:#e5e7eb;overflow:hidden; margin:6px 0 10px 0; }
+    .bar div{ height:100%;width:0;border-radius:999px; background:linear-gradient(90deg,var(--warn),#fbbf24); }
+    .bar.green div{ background:linear-gradient(90deg,var(--brand-2),#34d399); }
+    .bar.gray div{ background:linear-gradient(90deg,#94a3b8,#cbd5e1); }
+    .bar.red div{ background:linear-gradient(90deg,var(--danger),#fb7185); }
+
+    .campaign-meta{ font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap; margin-bottom:12px; }
+    .campaign-actions{ display:flex;gap:10px;flex-wrap:wrap;align-items:center; }
+
+    /* Modal wizard */
+    .modal-backdrop{
+      position:fixed;inset:0;background:rgba(15, 23, 42, 0.45);
+      display:none;align-items:center;justify-content:center;padding:18px;z-index:100;
+    }
+    .modal-backdrop.open{ display:flex; }
+    .modal{
+      width:min(980px, 100%); max-height:92vh; overflow:auto;
+      border-radius:16px;background:#fff;border:1px solid var(--border);
+      box-shadow:0 20px 60px rgba(15, 23, 42, 0.25);
+    }
+    .modal-header{
+      padding:16px 18px;border-bottom:1px solid var(--border);
+      display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+    }
+    .modal-header h2{ margin:0;font-size:18px; }
+    .modal-header p{ margin:4px 0 0 0;color:var(--muted);font-size:13px; }
+    .modal-body{ padding:16px 18px 18px 18px; }
+    .stepper{
+      display:flex;align-items:center;justify-content:center;gap:14px;
+      margin:10px 0 16px 0;color:#64748b;font-weight:700;font-size:13px;
+    }
+    .step{ display:flex;align-items:center;gap:8px; }
+    .step-dot{
+      width:26px;height:26px;border-radius:999px;background:#e2e8f0;border:1px solid #cbd5e1;
+      display:flex;align-items:center;justify-content:center;font-size:12px;color:#334155;
+    }
+    .step.active .step-dot{ background:#e0f2fe;border-color:#bae6fd;color:#075985; }
+    .step.done .step-dot{ background:#dcfce7;border-color:#bbf7d0;color:#065f46; }
+
+    .form-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
+    .form-field{ display:flex;flex-direction:column;gap:6px; }
+    .form-field label{ font-size:12px;color:#334155;font-weight:700; }
+    .form-field input,.form-field textarea{
+      padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+      outline:none;font-size:13px;
+    }
+    .form-field textarea{ min-height:110px;resize:vertical; }
+    .span-2{ grid-column:1 / -1; }
+    .split{ display:grid; grid-template-columns:1.3fr 0.7fr; gap:14px; align-items:start; }
+    .dropzone{
+      border:2px dashed #cbd5e1;border-radius:14px;padding:18px;text-align:center;
+      color:var(--muted);background:#f8fafc;
+    }
+    .listbox{ border:1px solid var(--border); border-radius:14px; padding:14px; background:#fff; }
+    .list-item{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:10px 10px;border:1px solid var(--border); border-radius:12px;
+      margin-top:10px;font-size:13px;color:#0f172a;background:#fff;
+    }
+    .icon-btn{
+      padding:7px 10px;border-radius:10px;border:1px solid var(--border);
+      background:#fff;cursor:pointer;font-weight:700;color:#334155;
+    }
+    .modal-footer{
+      padding:14px 18px;border-top:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+
+    /* Campaign Auto-fill fields moved from dashboard */
+    .fill-form-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-top:10px; }
+    .fill-form-field{ display:flex; flex-direction:column; gap:6px; }
+    .fill-form-field label{ font-size:12px;color:#334155;font-weight:650; }
+    .fill-form-field input,.fill-form-field textarea{
+      padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+      background:#fff;color:var(--text);font-size:13px;outline:none;
+    }
+    .fill-form-field textarea{ min-height:90px;resize:vertical; }
+    .muted-note{ color:var(--muted);font-size:12px;margin-top:6px; }
+    .progress-container{
+      border:1px solid var(--border); background:#fff; border-radius:12px; padding:10px; margin-top:10px;
+    }
+    .progress-bar{
+      width:0;height:6px;background:linear-gradient(90deg,var(--brand),#60a5fa);
+      border-radius:999px; transition:width 0.3s;
+    }
+
+    @media (max-width:860px){
+      .form-grid{ grid-template-columns:1fr; }
+      .split{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge" aria-hidden="true"></div>
+        <div>Operations Hub</div>
+      </div>
+
+      <nav class="navtabs" aria-label="Primary">
+        <div class="tab active" data-page="dashboard">Dashboard</div>
+        <div class="tab" data-page="campaigns">Campaigns</div>
+        <div class="tab" data-page="websites">Websites</div>
+        <div class="tab" data-page="settings">Settings</div>
+      </nav>
+
+      <div class="userpill">
+        <div class="avatar" title="Profile">AD</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" class="page active">
+      <div class="container">
+        <div class="header">
+          <h1>Dashboard</h1>
+          <p>Core monitoring panels (extra tables &amp; auto-fill moved into Campaigns).</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-label">Websites in database</div>
+            <div class="stat-value" id="websites-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Visited at least once</div>
+            <div class="stat-value" id="visited-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Websites with forms found</div>
+            <div class="stat-value" id="forms-found-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">CAPTCHA encountered</div>
+            <div class="stat-value" id="captcha-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Dead sites (no form)</div>
+            <div class="stat-value" id="dead-sites-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Sites with 0 fields</div>
+            <div class="stat-value" id="zero-fields-count">-</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Websites &amp; Their Form Fields <span class="tag">Click to expand</span></h2>
+          <div id="websites-fields-list">Loading...</div>
+          <div class="pager">
+            <button id="ws-prev">&laquo; Prev</button>
+            <span id="ws-page-indicator">Page 1</span>
+            <button id="ws-next">Next &raquo;</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Dead Sites (form not found)</h2>
+          <div id="dead-sites-list">Loading...</div>
+          <div class="pager">
+            <button id="dead-prev">&laquo; Prev</button>
+            <span id="dead-page-indicator">Page 1</span>
+            <button id="dead-next">Next &raquo;</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Sites With 0 Fields</h2>
+          <div id="zero-sites-list">Loading...</div>
+          <div class="pager">
+            <button id="zero-prev">&laquo; Prev</button>
+            <span id="zero-page-indicator">Page 1</span>
+            <button id="zero-next">Next &raquo;</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Field Frequency Across Forms <span class="tag">How many times</span></h2>
+          <table>
+            <thead>
+              <tr><th>Field Name</th><th>Frequency (Total Occurrences)</th></tr>
+            </thead>
+            <tbody id="frequency-body">
+              <tr><td colspan="2">Loading...</td></tr>
+            </tbody>
+          </table>
+          <div class="pager">
+            <button id="freq-prev">&laquo; Prev</button>
+            <span id="freq-page-indicator">Page 1</span>
+            <button id="freq-next">Next &raquo;</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Field Cluster Key Mapping <span class="tag">cluster_key</span></h2>
+          <div id="mapping-list">Loading...</div>
+          <div class="pager">
+            <button id="mapping-prev">&laquo; Prev</button>
+            <span id="mapping-page-indicator">Page 1</span>
+            <button id="mapping-next">Next &raquo;</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAMPAIGNS -->
+    <section id="page-campaigns" class="page">
+      <div class="page-title">
+        <div>
+          <h1>Campaigns Overview</h1>
+          <p>Create campaigns and run automated form submissions.</p>
+        </div>
+        <div>
+          <button class="btn-primary" id="btn-new-campaign">New Campaign</button>
+        </div>
+      </div>
+
+      <div class="filters">
+        <select class="select" id="camp-filter-status">
+          <option value="all">All Statuses</option>
+          <option value="running">Running</option>
+          <option value="completed">Completed</option>
+          <option value="paused">Paused</option>
+          <option value="error">Error</option>
+        </select>
+        <select class="select" id="camp-filter-sort">
+          <option value="new">Date Created (Newest)</option>
+          <option value="old">Date Created (Oldest)</option>
+        </select>
+      </div>
+
+      <div class="campaign-grid" id="campaign-grid">
+        <!-- Filled by JS -->
+      </div>
+    </section>
+
+    <!-- WEBSITES placeholder -->
+    <section id="page-websites" class="page">
+      <div class="card" style="padding:18px;">
+        <h1 style="margin:0 0 8px 0; font-size:26px;">Websites</h1>
+        <p style="margin:0; color:var(--muted); font-size:13px;">
+          This page will hold website lists and per-website views.
+        </p>
+      </div>
+    </section>
+
+    <!-- SETTINGS placeholder -->
+    <section id="page-settings" class="page">
+      <div class="card" style="padding:18px;">
+        <h1 style="margin:0 0 8px 0; font-size:26px;">Settings</h1>
+        <p style="margin:0; color:var(--muted); font-size:13px;">
+          This page will hold profile defaults and configuration.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- New Campaign Modal Wizard -->
+  <div class="modal-backdrop" id="campaign-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="campaign-modal-title">
+      <div class="modal-header">
+        <div>
+          <h2 id="campaign-modal-title">New Campaign</h2>
+          <p>Details &nbsp;&nbsp; Websites &nbsp;&nbsp; Form Fields &nbsp;&nbsp; Review &nbsp;&nbsp; Launch</p>
+        </div>
+        <button class="btn-secondary" id="btn-close-campaign">Close</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="stepper" id="stepper">
+          <div class="step active" data-step="1"><div class="step-dot">1</div>Details</div>
+          <div style="width:60px;height:2px;background:#e2e8f0;"></div>
+          <div class="step" data-step="2"><div class="step-dot">2</div>Websites</div>
+          <div style="width:60px;height:2px;background:#e2e8f0;"></div>
+          <div class="step" data-step="3"><div class="step-dot">3</div>Form Fields</div>
+          <div style="width:60px;height:2px;background:#e2e8f0;"></div>
+          <div class="step" data-step="4"><div class="step-dot">4</div>Review</div>
+        </div>
+
+        <!-- Step 1 -->
+        <div id="wizard-step-1" class="form-grid">
+          <div class="form-field">
+            <label>Campaign Name</label>
+            <input id="camp-name" placeholder="e.g., Lead Generation Q3 2025" />
+          </div>
+          <div class="form-field">
+            <label>Campaign Description</label>
+            <input id="camp-desc" placeholder="Briefly describe the purpose of this campaign." />
+          </div>
+          <div class="form-field">
+            <label>Sender Name</label>
+            <input id="sender-name" placeholder="e.g., John Doe" />
+          </div>
+          <div class="form-field">
+            <label>Sender Email</label>
+            <input id="sender-email" placeholder="e.g., contact@example.com" />
+          </div>
+          <div class="form-field">
+            <label>Subject Line</label>
+            <input id="subject-line" placeholder="e.g., Partnership opportunity" />
+          </div>
+          <div class="form-field span-2">
+            <label>Message Body</label>
+            <textarea id="message-body" placeholder="Write the message to be sent via contact forms."></textarea>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div id="wizard-step-2" style="display:none;">
+          <div class="split">
+            <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+              <h3 style="margin:0 0 12px 0; font-size:16px;">Add Single Website</h3>
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <input id="single-url" class="select" style="flex:1; min-width:240px;" placeholder="e.g., https://example.com/contact" />
+                <button class="btn-primary" id="btn-add-url" style="box-shadow:none;">Add</button>
+              </div>
+
+              <div style="height:12px;"></div>
+
+              <h3 style="margin:0 0 12px 0; font-size:16px;">Import from File (CSV)</h3>
+              <div class="dropzone">
+                Drag &amp; Drop your CSV file here, or<br><br>
+                <input type="file" id="csv-file" accept=".csv" />
+              </div>
+            </div>
+
+            <div class="listbox">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <h3 style="margin:0; font-size:16px;">Added Websites</h3>
+                <div style="color:var(--muted); font-size:12px;" id="added-count">0 websites added</div>
+              </div>
+              <div id="added-sites"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div id="wizard-step-3" style="display:none;">
+          <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+              <div>
+                <h3 style="margin:0 0 6px 0;">Form Fields</h3>
+                <div class="muted-note">Choose constant value or random from pool for each field</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <label style="font-size:12px; color:#334155; font-weight:700;">Max websites</label>
+                <input id="camp-max-websites" class="select" style="width:140px;" type="number" min="1" max="5000" value="50" />
+              </div>
+            </div>
+
+            <div id="camp-fields-loading" class="muted-note" style="margin-top:10px;">Loading form template...</div>
+
+            <div id="camp-section-essential" style="display:none;">
+              <h4 style="margin:14px 0 8px 0; color:#1d4ed8;">Essential Fields</h4>
+              <div class="fill-form-grid" id="camp-essential-fields"></div>
+            </div>
+
+            <div id="camp-section-common" style="display:none;">
+              <h4 style="margin:14px 0 8px 0; color:#475569;">
+                <span style="cursor:pointer; user-select:none;" onclick="toggleCampaignSection('common')">Common Fields</span>
+              </h4>
+              <div class="fill-form-grid" id="camp-common-fields" style="display:none;"></div>
+            </div>
+
+            <div id="camp-section-optional" style="display:none;">
+              <h4 style="margin:14px 0 8px 0; color:#475569;">
+                <span style="cursor:pointer; user-select:none;" onclick="toggleCampaignSection('optional')">Optional Fields</span>
+              </h4>
+              <div class="fill-form-grid" id="camp-optional-fields" style="display:none;"></div>
+            </div>
+
+            <div id="camp-field-stats" class="progress-container" style="display:none;">
+              <div style="font-size:12px; color:var(--muted);">
+                <strong>Pool Status</strong><br>
+                <span id="camp-stats-text">Checking pools...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div id="wizard-step-4" style="display:none;">
+          <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+            <h3 style="margin:0 0 10px 0;">Campaign Details Summary</h3>
+            <div style="display:grid; grid-template-columns:1fr; gap:8px; font-size:13px;">
+              <div><strong>Campaign Name</strong> <span id="rev-name"></span></div>
+              <div><strong>Description</strong> <span id="rev-desc"></span></div>
+              <div><strong>Sender Name</strong> <span id="rev-sender-name"></span></div>
+              <div><strong>Sender Email</strong> <span id="rev-sender-email"></span></div>
+              <div><strong>Subject Line</strong> <span id="rev-subject"></span></div>
+              <div><strong>Message Body</strong> <span id="rev-message"></span></div>
+              <div><strong>Max websites</strong> <span id="rev-max"></span></div>
+            </div>
+
+            <div style="height:12px;"></div>
+
+            <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+              <h3 style="margin:0 0 10px 0;">Targets</h3>
+              <div style="color:var(--muted); font-size:13px; margin-bottom:10px;">
+                Total Websites: <strong id="rev-total">0</strong>
+              </div>
+              <div id="rev-sites" style="max-height:180px; overflow:auto; border:1px solid var(--border); border-radius:12px; padding:10px;"></div>
+            </div>
+
+            <div style="height:12px;"></div>
+
+            <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+              <label style="display:flex; align-items:center; gap:10px; font-size:13px; color:#334155;">
+                <input type="checkbox" id="confirm-launch" />
+                I understand launching will run automated submissions for the listed websites.
+              </label>
+
+              <div id="camp-launch-progress" class="progress-container" style="display:none;">
+                <div class="progress-bar" id="camp-progress-bar" style="width:0;"></div>
+                <div id="camp-progress-text" style="font-size:12px; color:var(--muted); margin-top:6px;">Starting...</div>
+                <div id="camp-launch-result" style="font-size:12px; margin-top:6px; color:var(--muted);">Ready</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn-secondary" id="btn-prev-step">Previous Step</button>
+          <button class="btn-secondary" id="btn-next-step">Next Step</button>
+        </div>
+        <button class="btn-success" id="btn-launch" disabled>Launch Campaign</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* -----------------------------
+       Config
+    ------------------------------*/
+    const APIBASE = "http://127.0.0.1:8000/api";
+
+    /* -----------------------------
+       Helpers
+    ------------------------------*/
+    function escapeHtml(str){
+      return String(str ?? "").replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[s]));
+    }
+    function apiUrl(path) {
+      return APIBASE.replace(/\/+$/, "") + "/" + String(path || "").replace(/^\/+/, "");
+    }
+
+
+    async function safeFetchJSON(path){
+      const url = APIBASE.replace(/\/+$/, "") + "/" + String(path || "").replace(/^\/+/, "");
+      const resp = await fetch(url);
+      const text = await resp.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch(e){}
+      if (!resp.ok){
+        const hint = data && (data.detail || data.message) ? (" - " + (data.detail || data.message)) : "";
+        throw new Error(resp.status + " " + resp.statusText + " @ " + url + hint);
+      }
+      return data;
+    }
+
+    function showErr(containerId, err){
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      el.innerHTML = `
+        <div class="errbox">
+          <div style="font-weight:800; margin-bottom:4px;">Error</div>
+          <div>${escapeHtml(err?.message || String(err))}</div>
+          <div style="margin-top:6px; opacity:.9;">
+            Tip: open DevTools Console/Network and verify endpoint exists (no 404) and API server is running.
+          </div>
+        </div>
+      `;
+    }
+
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const yieldToUI = () => new Promise(r => setTimeout(r, 0));
+
+    /* -----------------------------
+       Dashboard state
+    ------------------------------*/
+    let websitesFieldsPage = 0;
+    let deadSitesPage = 0;
+    let zeroSitesPage = 0;
+    const WSPAGESIZE = 10;
+    const DEADPAGESIZE = 10;
+    const ZEROPAGESIZE = 10;
+
+    let freqData = [];
+    let freqPage = 0;
+    const FREQPAGESIZE = 10;
+
+    let mappingData = [];
+    let mappingPage = 0;
+    const MAPPINGPAGESIZE = 10;
+
+    let deadSitesTotal = 0;
+    let zeroSitesTotal = 0;
+
+    async function loadDashboard(){
+      try{
+        const webData = await safeFetchJSON("/websites");
+        document.getElementById("websites-count").textContent = webData.total ?? 0;
+        document.getElementById("visited-count").textContent = webData.visited ?? 0;
+        document.getElementById("forms-found-count").textContent = webData.formsTotal ?? webData.formstotal ?? 0;
+        document.getElementById("captcha-count").textContent = webData.captchaTotal ?? webData.captchatotal ?? 0;
+        document.getElementById("dead-sites-count").textContent = webData.deadSites ?? webData.deadsites ?? 0;
+        document.getElementById("zero-fields-count").textContent = webData.zeroFieldSites ?? webData.zerofieldsites ?? 0;
+
+        deadSitesTotal = webData.deadSites ?? webData.deadsites ?? 0;
+        zeroSitesTotal = webData.zeroFieldSites ?? webData.zerofieldsites ?? 0;
+
+        await loadWebsitesFields();
+        await loadDeadSites();
+        await loadZeroFieldSites();
+        await loadFieldFrequency();
+        await loadFieldMapping();
+      }catch(err){
+        console.error("Dashboard load error", err);
+      }
+    }
+
+    async function loadWebsitesFields(){
+      try{
+        const data = await safeFetchJSON(`/websites-with-fields?skip=${websitesFieldsPage*WSPAGESIZE}&limit=${WSPAGESIZE}`);
+        const sites = data.items || [];
+        const container = document.getElementById("websites-fields-list");
+
+        if (!sites.length){
+          container.textContent = "No websites with form fields yet.";
+        }else{
+          let html = "";
+          for (const ws of sites){
+            const seen = new Set();
+            const labels = [];
+            for (const f of (ws.fields || [])){
+              const label = (f.placeholder || f.fieldname || "unknown").trim();
+              if (!seen.has(label)){
+                seen.add(label);
+                labels.push(label);
+              }
+            }
+            const fieldsList = labels.length
+              ? labels.map(label => `<span class="field-tag">${escapeHtml(label)}</span>`).join("")
+              : "No fields";
+
+            html += `
+              <div class="website-item" onclick="toggleFields(this)">
+                <div class="website-url">${escapeHtml(ws.url || "")}</div>
+                <div class="website-count">${labels.length} unique fields</div>
+                <div class="website-fields">${fieldsList}</div>
+              </div>
+            `;
+          }
+          container.innerHTML = html;
+          document.getElementById("ws-page-indicator").textContent = `Page ${websitesFieldsPage+1}`;
+        }
+      }catch(err){
+        console.error("websites-with-fields error", err);
+        showErr("websites-fields-list", err);
+      }
+    }
+
+    function toggleFields(element){
+      const fieldsDiv = element.querySelector(".website-fields");
+      fieldsDiv.classList.toggle("open");
+    }
+    window.toggleFields = toggleFields;
+
+    async function loadDeadSites(){
+      try{
+        const data = await safeFetchJSON(`/dead-sites?skip=${deadSitesPage*DEADPAGESIZE}&limit=${DEADPAGESIZE}`);
+        const items = data.items || [];
+        deadSitesTotal = data.total ?? deadSitesTotal;
+
+        const container = document.getElementById("dead-sites-list");
+        if (!items.length){
+          container.textContent = "No dead sites.";
+        }else{
+          let html = `<table><thead><tr><th>#</th><th>Website ID</th><th>URL</th></tr></thead><tbody>`;
+          items.forEach((item, idx) => {
+            const index = deadSitesPage*DEADPAGESIZE + idx + 1;
+            html += `<tr><td>${index}</td><td>${escapeHtml(String(item.id ?? ""))}</td><td>${escapeHtml(item.url ?? "")}</td></tr>`;
+          });
+          html += `</tbody></table>`;
+          container.innerHTML = html;
+        }
+
+        document.getElementById("dead-page-indicator").textContent = `Page ${deadSitesPage+1}`;
+        const maxPage = Math.max(0, Math.ceil(deadSitesTotal / DEADPAGESIZE) - 1);
+        document.getElementById("dead-prev").disabled = deadSitesPage <= 0;
+        document.getElementById("dead-next").disabled = deadSitesPage >= maxPage;
+      }catch(err){
+        console.error("dead-sites error", err);
+        showErr("dead-sites-list", err);
+      }
+    }
+
+    async function loadZeroFieldSites(){
+      try{
+        const data = await safeFetchJSON(`/zero-field-sites?skip=${zeroSitesPage*ZEROPAGESIZE}&limit=${ZEROPAGESIZE}`);
+        const items = data.items || [];
+        zeroSitesTotal = data.total ?? data.totalzero ?? data.zerofieldsites ?? zeroSitesTotal;
+
+        const container = document.getElementById("zero-sites-list");
+        if (!items.length){
+          container.textContent = "No zero-field sites.";
+        }else{
+          let html = `<table><thead><tr><th>#</th><th>Website ID</th><th>URL</th></tr></thead><tbody>`;
+          items.forEach((item, idx) => {
+            const index = zeroSitesPage*ZEROPAGESIZE + idx + 1;
+            html += `<tr><td>${index}</td><td>${escapeHtml(String(item.id ?? ""))}</td><td>${escapeHtml(item.url ?? "")}</td></tr>`;
+          });
+          html += `</tbody></table>`;
+          container.innerHTML = html;
+        }
+
+        document.getElementById("zero-page-indicator").textContent = `Page ${zeroSitesPage+1}`;
+        const maxPage = Math.max(0, Math.ceil(zeroSitesTotal / ZEROPAGESIZE) - 1);
+        document.getElementById("zero-prev").disabled = zeroSitesPage <= 0;
+        document.getElementById("zero-next").disabled = zeroSitesPage >= maxPage;
+      }catch(err){
+        console.error("zero-field-sites error", err);
+        showErr("zero-sites-list", err);
+      }
+    }
+
+    async function loadFieldFrequency(){
+      try{
+        const resp = await fetch(APIBASE + "/field-frequency");
+        if (!resp.ok) throw new Error("field-frequency " + resp.status);
+        const data = await resp.json();
+        freqData = data.items || [];
+        freqPage = 0;
+        renderFieldFrequency();
+      }catch(err){
+        console.error("field-frequency error", err);
+        document.getElementById("frequency-body").innerHTML = `<tr><td colspan="2">Error loading frequency data.</td></tr>`;
+      }
+    }
+
+    function renderFieldFrequency(){
+      const tbody = document.getElementById("frequency-body");
+      if (!freqData.length){
+        tbody.innerHTML = `<tr><td colspan="2">No frequency data.</td></tr>`;
+        return;
+      }
+      const start = freqPage * FREQPAGESIZE;
+      const pageItems = freqData.slice(start, start + FREQPAGESIZE);
+      let html = "";
+      for (const f of pageItems){
+        html += `<tr><td>${escapeHtml(f.field ?? "")}</td><td>${escapeHtml(String(f.frequency ?? ""))}</td></tr>`;
+      }
+      tbody.innerHTML = html;
+
+      const maxPage = Math.max(0, Math.ceil(freqData.length / FREQPAGESIZE) - 1);
+      document.getElementById("freq-prev").disabled = freqPage <= 0;
+      document.getElementById("freq-next").disabled = freqPage >= maxPage;
+      document.getElementById("freq-page-indicator").textContent = `Page ${freqPage+1} / ${maxPage+1}`;
+    }
+
+    async function loadFieldMapping(){
+      try{
+        const data = await safeFetchJSON("/field-mapping");
+        mappingData = data.items || [];
+        mappingPage = 0;
+        renderFieldMapping();
+      }catch(err){
+        console.error("field-mapping error", err);
+        showErr("mapping-list", err);
+      }
+    }
+    
+    function renderFieldMapping(){
+      const container = document.getElementById("mapping-list");
+      if (!mappingData.length){
+        container.textContent = "No mapping data.";
+        return;
+      }
+      const start = mappingPage * MAPPINGPAGESIZE;
+      const pageItems = mappingData.slice(start, start + MAPPINGPAGESIZE);
+
+      let html = `<table><thead><tr><th>Cluster Key</th><th>Total Fields</th></tr></thead><tbody>`;
+      for (const m of pageItems){
+        const cluster = m.clusterKey ?? m.clusterkey ?? "";
+        const count = m.fieldCount ?? m.fieldcount ?? 0;
+        html += `<tr><td>${escapeHtml(cluster)}</td><td><strong>${escapeHtml(String(count))}</strong></td></tr>`;
+      }
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+
+      const maxPage = Math.max(0, Math.ceil(mappingData.length / MAPPINGPAGESIZE) - 1);
+      document.getElementById("mapping-prev").disabled = mappingPage <= 0;
+      document.getElementById("mapping-next").disabled = mappingPage >= maxPage;
+      document.getElementById("mapping-page-indicator").textContent = `Page ${mappingPage+1} / ${maxPage+1}`;
+    }
+
+    /* -----------------------------
+       Pagination bindings
+    ------------------------------*/
+    document.getElementById("ws-prev").onclick = () => {
+      websitesFieldsPage = Math.max(0, websitesFieldsPage - 1);
+      loadWebsitesFields();
+    };
+    document.getElementById("ws-next").onclick = () => {
+      websitesFieldsPage = websitesFieldsPage + 1;
+      loadWebsitesFields();
+    };
+
+    document.getElementById("dead-prev").onclick = () => {
+      deadSitesPage = Math.max(0, deadSitesPage - 1);
+      loadDeadSites();
+    };
+    document.getElementById("dead-next").onclick = () => {
+      deadSitesPage = deadSitesPage + 1;
+      loadDeadSites();
+    };
+
+    document.getElementById("zero-prev").onclick = () => {
+      zeroSitesPage = Math.max(0, zeroSitesPage - 1);
+      loadZeroFieldSites();
+    };
+    document.getElementById("zero-next").onclick = () => {
+      zeroSitesPage = zeroSitesPage + 1;
+      loadZeroFieldSites();
+    };
+
+    document.getElementById("freq-prev").onclick = () => {
+      freqPage = Math.max(0, freqPage - 1);
+      renderFieldFrequency();
+    };
+    document.getElementById("freq-next").onclick = () => {
+      const maxPage = Math.max(0, Math.ceil(freqData.length / FREQPAGESIZE) - 1);
+      freqPage = Math.min(maxPage, freqPage + 1);
+      renderFieldFrequency();
+    };
+
+    document.getElementById("mapping-prev").onclick = () => {
+      mappingPage = Math.max(0, mappingPage - 1);
+      renderFieldMapping();
+    };
+    document.getElementById("mapping-next").onclick = () => {
+      const maxPage = Math.max(0, Math.ceil(mappingData.length / MAPPINGPAGESIZE) - 1);
+      mappingPage = Math.min(maxPage, mappingPage + 1);
+      renderFieldMapping();
+    };
+
+    /* -----------------------------
+       Top tabs UI (and load campaigns on tab switch)
+    ------------------------------*/
+    const tabs = document.querySelectorAll(".tab");
+    const pages = {
+      dashboard: document.getElementById("page-dashboard"),
+      campaigns: document.getElementById("page-campaigns"),
+      websites: document.getElementById("page-websites"),
+      settings: document.getElementById("page-settings"),
+    };
+
+    tabs.forEach(t => t.addEventListener("click", async () => {
+      const key = t.getAttribute("data-page");
+      tabs.forEach(x => x.classList.toggle("active", x === t));
+      Object.entries(pages).forEach(([k, el]) => el.classList.toggle("active", k === key));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      if (key === "campaigns") await loadCampaigns();
+    }));
+
+    /* -----------------------------
+      Campaign list LIVE
+    ------------------------------*/
+    function fmtDT(v){
+      if (!v) return "";
+      try { return new Date(v).toLocaleString(); }
+      catch(e){ return String(v); }
+    }
+
+    function renderCampaignCard(c){
+      const last = c.lastRun || {};
+      const statusRaw = c.status || last.status || "draft";
+      const status = String(statusRaw).toLowerCase();
+      const pillClass =
+        status === "running" ? "running" :
+        status === "completed" ? "completed" :
+        status === "paused" ? "paused" :
+        status === "error" ? "error" : "";
+
+      const total = Number(last.total ?? c.targets ?? 0);
+      const progress = Number(last.progress ?? 0);
+
+      const pct = total
+        ? Math.min(100, Math.round((progress / total) * 100))
+        : (status === "completed" ? 100 : 0);
+
+      const barClass =
+        status === "completed" ? "green" :
+        status === "paused" ? "gray" :
+        status === "error" ? "red" : "";
+
+      const action2 =
+        status === "running"
+          ? `<button class="btn-ghost" onclick="campaignPause('${escapeHtml(c.id)}')">Pause</button>`
+          : `<button class="btn-ghost" onclick="campaignRestart('${escapeHtml(c.id)}')">Restart</button>`;
+
+      return `
+        <div class="card campaign-card">
+          <div class="campaign-head">
+            <h3 class="campaign-name">${escapeHtml(c.name || ("Campaign " + c.id))}</h3>
+            <span class="pill ${pillClass}">${escapeHtml(String(statusRaw).toUpperCase())}</span>
+          </div>
+
+          <div class="campaign-progress">
+            <span>${escapeHtml(String(progress))} / ${escapeHtml(String(total))} completed</span>
+            <span>${escapeHtml(String(pct))}%</span>
+          </div>
+          <div class="bar ${barClass}"><div style="width:${pct}%;"></div></div>
+
+          <div class="campaign-meta">
+            <span>Targets: ${escapeHtml(String(c.targets ?? 0))}</span>
+            <span>Updated: ${escapeHtml(fmtDT(c.updatedat || c.updatedAt || c.createdat || c.createdAt))}</span>
+          </div>
+
+          <div class="campaign-actions">
+            <button class="btn-ghost" onclick="campaignDetails('${escapeHtml(c.id)}')">Details</button>
+            ${action2}
+          </div>
+        </div>
+      `;
+    }
+
+    /* -----------------------------
+      Campaign list LIVE - continued
+    ------------------------------*/
+    async function loadCampaigns(){
+      const grid = document.getElementById("campaign-grid");
+      const statusSel = document.getElementById("campaign-filter-status");
+      const sortSel = document.getElementById("campaign-filter-sort");
+
+      try{
+        if (grid) grid.innerHTML = `<div class="muted-note">Loading campaigns...</div>`;
+
+        const data = await safeFetchJSON("/campaigns");
+        let items = data.items || [];
+
+        const wantStatus = (statusSel?.value || "all").toLowerCase();
+        if (wantStatus !== "all"){
+          items = items.filter(x => String(x.status || "").toLowerCase() === wantStatus);
+        }
+
+        const sort = (sortSel?.value || "newest").toLowerCase();
+        if (sort === "oldest") items = items.slice().reverse();
+
+        if (!items.length){
+          if (grid) grid.innerHTML = `<div class="muted-note">No campaigns yet. Click New Campaign.</div>`;
+          return;
+        }
+
+        if (grid) grid.innerHTML = items.map(renderCampaignCard).join("");
+      }catch(err){
+        console.error("loadCampaigns error", err);
+        if (grid) showErr("campaign-grid", err);
+      }
+    }
+
+    document.getElementById("btn-refresh-campaigns")?.addEventListener("click", loadCampaigns);
+    document.getElementById("campaign-filter-status")?.addEventListener("change", loadCampaigns);
+    document.getElementById("campaign-filter-sort")?.addEventListener("change", loadCampaigns);
+
+    /* -----------------------------
+      Campaign actions
+    ------------------------------*/
+    async function campaignDetails(campaignId){
+      try{
+        const c = await safeFetchJSON(`/campaigns/${campaignId}`);
+        const last = c.lastRun || {};
+        const msg =
+          `Campaign ${c.id}\n` +
+          `Name: ${c.name}\n` +
+          `Status: ${c.status}\n` +
+          `Targets: ${c.targets || 0}\n` +
+          `Last run: ${last.status || "none"} ${last.progress ?? 0}/${last.total ?? 0}\n` +
+          (last.error ? `Error: ${last.error}\n` : "");
+        alert(msg);
+      }catch(err){
+        alert("Error: " + (err.message || String(err)));
+      }
+    }
+
+    async function campaignRestart(campaignId){
+      try{
+        await fetch(`${APIBASE}/campaigns/${campaignId}/start`, { method:"POST" });
+        await loadCampaigns();
+      }catch(err){
+        alert("Error: " + (err.message || String(err)));
+      }
+    }
+
+    async function campaignPause(campaignId){
+      alert("Pause endpoint not implemented in backend yet.");
+    }
+
+    window.campaignDetails = campaignDetails;
+    window.campaignRestart = campaignRestart;
+    window.campaignPause = campaignPause;
+
+    /* -----------------------------
+      Wizard collect data FIXED
+    ------------------------------*/
+    function collectCampaignUserData(){
+      const campaignName = document.getElementById("camp-name").value.trim();
+      const campaignDesc = document.getElementById("camp-desc").value.trim();
+      const senderName = document.getElementById("sender-name").value.trim();
+      const senderEmail = document.getElementById("sender-email").value.trim();
+      const subjectLine = document.getElementById("subject-line").value.trim();
+      const messageBody = document.getElementById("message-body").value.trim();
+      const maxWebsites = parseInt(document.getElementById("camp-max-websites").value, 10) || 50;
+
+      const userData = {};
+      const fieldStrategies = {};
+
+      document.querySelectorAll(".camp-field-value").forEach(el => {
+        const safeConcept = el.id.replace("camp-value-", "");
+        const radio = document.querySelector(`input[name="camp-strategy-${CSS.escape(safeConcept)}"]:checked`);
+        const strategy = radio ? radio.value : "constant";
+        const value = el.value.trim();
+
+        fieldStrategies[safeConcept] = { strategy, value: strategy === "constant" ? value : null };
+        if (strategy === "constant" && value) userData[safeConcept] = value;
+      });
+
+      if (!userData.fullname && senderName) userData.fullname = senderName;
+      if (!userData.name && senderName) userData.name = senderName;
+      if (!userData.email && senderEmail) userData.email = senderEmail;
+      if (!userData.subject && subjectLine) userData.subject = subjectLine;
+      if (!userData.message && messageBody) userData.message = messageBody;
+
+      return {
+        campaignName,
+        campaignDesc,
+        senderName,
+        senderEmail,
+        subjectLine,
+        messageBody,
+        maxWebsites,
+        websites: addedSites.slice(),
+        userData,
+        fieldStrategies,
+      };
+    }
+
+    async function saveCampaignToBackend(){
+      const data = collectCampaignUserData();
+
+      if (!data.campaignName) throw new Error("Campaign name is required.");
+      if (!data.websites.length) throw new Error("Add at least 1 website.");
+
+      const resp = await fetch(`${APIBASE}/campaigns`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.campaignName,
+          description: data.campaignDesc,
+          senderName: data.senderName,
+          senderEmail: data.senderEmail,
+          subjectLine: data.subjectLine,
+          messageBody: data.messageBody,
+          maxWebsites: data.maxWebsites,
+          websiteIds: data.websites,
+          fieldStrategies: data.fieldStrategies,
+        }),
+      });
+
+      const result = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(result.detail || "Save failed");
+      return result;
+    }
+
+    /* -----------------------------
+      Wizard launch FIXED
+    ------------------------------*/
+    let campaignFilling = false;
+
+    async function launchCampaignRun(){
+      if (campaignFilling) return;
+      campaignFilling = true;
+
+      const progressWrap = document.getElementById("camp-launch-progress");
+      const progressBar = document.getElementById("camp-progress-bar");
+      const progressText = document.getElementById("camp-progress-text");
+      const resultEl = document.getElementById("camp-launch-result");
+
+      progressWrap.style.display = "block";
+      progressBar.style.width = "0%";
+      progressText.textContent = "Starting...";
+      resultEl.style.color = "var(--muted)";
+      resultEl.textContent = "Saving campaign...";
+
+      try{
+        const saved = await saveCampaignToBackend();
+        const campaignId = saved.campaignId || saved.campaignid || saved.id;
+        if (!campaignId) throw new Error("Backend did not return campaignId.");
+
+        resultEl.textContent = "Starting run...";
+
+        const startResp = await fetch(`${APIBASE}/campaigns/${campaignId}/start`, { method:"POST" });
+        if (!startResp.ok){
+          const t = await startResp.text();
+          throw new Error(`Start failed ${startResp.status} ${startResp.statusText} ${t ? t.slice(0,200) : ""}`);
+        }
+
+        while (true){
+          const st = await safeFetchJSON(`/campaigns/${campaignId}/status`);
+          const total = Number(st.total || 0);
+          const progress = Number(st.progress || 0);
+          const pct = total ? Math.min(100, Math.round((progress / total) * 100)) : 0;
+
+          progressBar.style.width = pct + "%";
+          progressText.textContent = `${st.status || "running"} ${progress}/${total}`;
+
+          if (!st.running){
+            progressBar.style.width = "100%";
+
+            if (String(st.status || "").toLowerCase() === "completed"){
+              resultEl.style.color = "var(--brand-2)";
+              if (st.results){
+                resultEl.textContent = `Complete! Success ${st.results.success} | Failed ${st.results.failed} | CAPTCHA ${st.results.captcha}`;
+              } else {
+                resultEl.textContent = "Completed.";
+              }
+            } else {
+              resultEl.style.color = "var(--danger)";
+              resultEl.textContent = st.error ? `Error: ${st.error}` : `Stopped: ${st.status || "unknown"}`;
+            }
+            break;
+          }
+
+          await sleep(1200);
+        }
+
+        await loadCampaigns();
+
+      }catch(err){
+        console.error("Campaign launch error", err);
+        resultEl.style.color = "var(--danger)";
+        resultEl.textContent = "Error: " + (err.message || String(err));
+        progressText.textContent = "Failed";
+      }finally{
+        campaignFilling = false;
+      }
+    }
+
+    /* -----------------------------
+      Hook campaigns tab click to refresh
+    ------------------------------*/
+    tabs.forEach(t => t.addEventListener("click", async () => {
+      const key = t.getAttribute("data-page");
+      if (key === "campaigns") await loadCampaigns();
+    }));
+
+    /* -----------------------------
+      Campaign wizard logic
+    ------------------------------*/
+    const stepEls = {
+      1: document.getElementById("wizard-step-1"),
+      2: document.getElementById("wizard-step-2"),
+      3: document.getElementById("wizard-step-3"),
+      4: document.getElementById("wizard-step-4"),
+    };
+    let wizardStep = 1;
+
+    // UPDATED store as Set for fast dedupe
+    let addedSites = [];
+    let addedSitesSet = new Set();
+
+    function openModal(){
+      modal?.classList.add("open");
+      wizardStep = 1;
+
+      // reset
+      addedSites = [];
+      addedSitesSet = new Set();
+      drawAddedSites();
+
+      if (confirmLaunch) confirmLaunch.checked = false;
+      if (btnLaunch) btnLaunch.disabled = true;
+
+      // load field template for campaign
+      loadCampaignFormTemplate();
+      renderWizard();
+    }
+
+    function closeModal(){
+      modal?.classList.remove("open");
+    }
+
+    function renderWizard(){
+      Object.values(stepEls).forEach(el => { if (el) el.style.display = "none"; });
+      if (stepEls[wizardStep]) stepEls[wizardStep].style.display = "block";
+
+      document.querySelectorAll("#stepper .step").forEach(s => {
+        const n = parseInt(s.getAttribute("data-step"), 10);
+        s.classList.toggle("active", n === wizardStep);
+        s.classList.toggle("done", n < wizardStep);
+      });
+
+      if (btnPrev) btnPrev.disabled = wizardStep === 1;
+      if (btnNext) btnNext.style.display = wizardStep === 4 ? "none" : "inline-block";
+      if (btnLaunch) btnLaunch.style.display = wizardStep === 4 ? "inline-block" : "none";
+
+      if (wizardStep === 4) updateReview();
+      if (btnLaunch) btnLaunch.disabled = !(wizardStep === 4 && confirmLaunch?.checked);
+    }
+
+    function updateReview(){
+      document.getElementById("rev-name").textContent = document.getElementById("camp-name").value.trim();
+      document.getElementById("rev-desc").textContent = document.getElementById("camp-desc").value.trim();
+      document.getElementById("rev-sender-name").textContent = document.getElementById("sender-name").value.trim();
+      document.getElementById("rev-sender-email").textContent = document.getElementById("sender-email").value.trim();
+      document.getElementById("rev-subject").textContent = document.getElementById("subject-line").value.trim();
+      document.getElementById("rev-message").textContent = document.getElementById("message-body").value.trim();
+      document.getElementById("rev-max").textContent = document.getElementById("camp-max-websites").value;
+
+      document.getElementById("rev-total").textContent = String(addedSites.length);
+      const revSites = document.getElementById("rev-sites");
+      revSites.innerHTML = addedSites.length
+        ? addedSites.map(u => `<div style="padding:6px 0; border-bottom:1px dashed #e5e7eb;">${escapeHtml(u)}</div>`).join("")
+        : `<div class="muted-note">No websites added.</div>`;
+    }
+
+    function updateAddedCount(){
+      const el = document.getElementById("added-count");
+      if (!el) return;
+      el.textContent = `${addedSites.length} websites added`;
+    }
+
+    // UPDATED addSite no longer redraws each time (prevents freeze for large CSV)
+    function addSite(url){
+      const u = (url || "").trim();
+      if (!u) return false;
+      if (addedSitesSet.has(u)) return false;
+      addedSitesSet.add(u);
+      addedSites.push(u);
+      return true;
+    }
+
+    // UPDATED bulk add one redraw
+    function addSitesBulk(urls){
+      let added = 0;
+      for (const u of (urls || [])){
+        if (addSite(u)) added++;
+      }
+      if (added > 0) drawAddedSites();
+      return added;
+    }
+
+    function removeSite(url){
+      const u = (url || "").trim();
+      if (!u) return;
+      if (!addedSitesSet.has(u)) return;
+      addedSitesSet.delete(u);
+      addedSites = addedSites.filter(x => x !== u);
+      drawAddedSites();
+    }
+
+    function drawAddedSites(){
+      const holder = document.getElementById("added-sites");
+      if (!holder) return;
+
+      if (!addedSites.length){
+        holder.innerHTML = `<div style="color:var(--muted); font-size:13px; margin-top:10px;">No websites added yet.</div>`;
+      } else {
+        holder.innerHTML = addedSites.map(u => `
+          <div class="list-item">
+            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:420px;">${escapeHtml(u)}</div>
+            <button class="icon-btn" onclick="removeSite('${escapeHtml(u).replace(/'/g, "\\'")}')">Delete</button>
+          </div>
+        `).join("");
+      }
+      updateAddedCount();
+    }
+
+    window.removeSite = removeSite;
+
+      
+
+  // -----------------------------------------
+  // Step 3 - NEW FIELD STRATEGY IMPLEMENTATION
+  // -----------------------------------------
+
+    function toggleCampaignSection(name) {
+      const container = document.getElementById(`camp-${name}-fields`);
+      if (!container) return;
+      container.style.display =
+        (container.style.display === "none" || !container.style.display) ? "grid" : "none";
+    }
+    window.toggleCampaignSection = toggleCampaignSection;
+
+    async function loadCampaignFormTemplate() {
+      console.count("loadCampaignFormTemplate called");
+
+      const loading = document.getElementById("camp-fields-loading");
+      loading.style.display = "block";
+      loading.textContent = "Loading form template...";
+
+      // Reset sections each time (important when reopening modal)
+      document.getElementById("camp-section-essential").style.display = "none";
+      document.getElementById("camp-section-common").style.display = "none";
+      document.getElementById("camp-section-optional").style.display = "none";
+      document.getElementById("camp-essential-fields").innerHTML = "";
+      document.getElementById("camp-common-fields").innerHTML = "";
+      document.getElementById("camp-optional-fields").innerHTML = "";
+
+      try {
+        // IMPORTANT: use /fill-form-template so safeFetchJSON works consistently
+        const template = await safeFetchJSON("/fill-form-template");
+        loading.style.display = "none";
+
+        const dedupeByConcept = (arr) => {
+          const seen = new Set();
+          return (arr || []).filter((f) => {
+            const key = String(
+              f?.concept ||
+              f?.fieldConcept ||
+              f?.humanName ||
+              f?.humanname ||
+              ""
+            ).trim().toLowerCase();
+
+            if (!key || seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        };
+
+        // Non-overlapping buckets (no fallback chaining that causes duplicates)
+        let essentials = dedupeByConcept(template.essentialFields || template.essentialfields || []);
+        let common     = dedupeByConcept(template.commonFields    || template.commonfields    || []);
+        let optional   = dedupeByConcept(
+          template.optionalFields || template.optionalfields ||
+          template.rareFields     || template.rarefields     || []
+        );
+
+        // If everything empty, try any arrays inside template (fallback)
+        if (!essentials.length && !common.length && !optional.length) {
+          const anyArrays = Object.values(template).filter(v => Array.isArray(v));
+          const merged = dedupeByConcept(anyArrays.flat());
+          if (merged.length) essentials = merged; // put fallback into essentials
+        }
+
+        // If still empty => show message instead of blank UI
+        if (!essentials.length && !common.length && !optional.length) {
+          loading.style.display = "block";
+          loading.textContent = "No fields returned by /api/fill-form-template.";
+          return;
+        }
+
+        if (essentials.length) {
+          document.getElementById("camp-section-essential").style.display = "block";
+          const grid = document.getElementById("camp-essential-fields");
+          grid.style.display = "grid";
+          renderCampaignFieldsWithStrategy(essentials, "camp-essential-fields");
+        }
+
+        if (common.length) {
+          document.getElementById("camp-section-common").style.display = "block";
+          const grid = document.getElementById("camp-common-fields");
+          grid.style.display = "grid";
+          renderCampaignFieldsWithStrategy(common, "camp-common-fields");
+        }
+
+        if (optional.length) {
+          document.getElementById("camp-section-optional").style.display = "block";
+          const grid = document.getElementById("camp-optional-fields");
+          grid.style.display = "grid";
+          renderCampaignFieldsWithStrategy(optional, "camp-optional-fields");
+        }
+
+        const statsBox = document.getElementById("camp-field-stats");
+        if (statsBox) statsBox.style.display = "block";
+        await loadPoolStatus([].concat(essentials, common, optional));
+
+      } catch (err) {
+        console.error("fill-form-template error", err);
+        loading.style.display = "block";
+        loading.innerHTML =
+          `<span style="color:var(--danger); font-weight:700">Error loading form template:</span> ` +
+          escapeHtml(err?.message || String(err));
+      }
+    }
+
+
+
+  function renderCampaignFieldsWithStrategy(fields, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    let html = "";
+
+    for (const field of fields) {
+      const conceptRaw = field.concept || field.fieldConcept || "unknown";
+      const human = field.humanName || field.humanname || conceptRaw;
+
+      const safeConcept = String(conceptRaw).replace(/[^a-zA-Z0-9_-]/g, "_");
+
+      const strategyName = `camp-strategy-${safeConcept}`;
+      const valueId = `camp-value-${safeConcept}`;
+      const constWrapId = `const-wrapper-${safeConcept}`;
+      const randomWrapId = `random-wrapper-${safeConcept}`;
+
+      html += `
+        <div class="fill-form-field" style="border:1px solid var(--border); padding:12px; border-radius:10px;">
+          <label style="font-size:12px; color:#334155; font-weight:700; margin-bottom:8px; display:block;">
+            ${escapeHtml(human)}
+          </label>
+
+          <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+              <input type="radio" name="${strategyName}" value="constant"
+                    class="camp-strategy-radio" data-safe="${safeConcept}" checked />
+              <span>Constant Value</span>
+            </label>
+
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+              <input type="radio" name="${strategyName}" value="random"
+                    class="camp-strategy-radio" data-safe="${safeConcept}" />
+              <span>Random from Pool</span>
+            </label>
+          </div>
+
+          <div id="${constWrapId}" style="display:block;">
+            <input id="${valueId}" class="camp-field-value" type="text"
+                  placeholder="Enter constant value (optional)"
+                  style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:13px; margin-bottom:8px;" />
+          </div>
+
+          <div id="${randomWrapId}" style="display:none;">
+            <div style="font-size:12px; color:#6b7280; margin-bottom:8px; padding:8px; background:var(--bg); border-radius:8px;">
+              Pool data will be used during campaign run.
+            </div>
+
+            <div style="margin-bottom:8px;">
+              <label style="font-size:12px; font-weight:700; color:#334155; display:block; margin-bottom:6px;">
+                Upload CSV (optional)
+              </label>
+              <div style="display:flex; gap:8px;">
+                <input type="file" accept=".csv" class="camp-csv-upload" data-safe="${safeConcept}"
+                      style="flex:1; padding:8px; border:1px solid var(--border); border-radius:8px; font-size:12px;" />
+                <button type="button" class="btn-ghost"
+                        onclick="uploadPoolCSV('${safeConcept}', '${escapeHtml(conceptRaw)}')">Upload</button>
+              </div>
+              <div id="csv-status-${safeConcept}" style="font-size:11px; color:#6b7280; margin-top:4px"></div>
+            </div>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-ghost"
+                      onclick="previewRandomValues('${safeConcept}', '${escapeHtml(conceptRaw)}')">Preview</button>
+              <button type="button" class="btn-ghost"
+                      onclick="checkPoolCount('${safeConcept}', '${escapeHtml(conceptRaw)}')">Check Pool Size</button>
+            </div>
+
+            <div id="preview-${safeConcept}"
+                style="font-size:12px; color:#6b7280; margin-top:8px; padding:8px; background:var(--bg); border-radius:8px; display:none;"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+
+    // Toggle constant/random blocks
+    container.querySelectorAll(".camp-strategy-radio").forEach((radio) => {
+      radio.addEventListener("change", (e) => {
+        const safe = e.target.dataset.safe;
+        const strategy = e.target.value;
+
+        const constWrapper = document.getElementById("const-wrapper-" + safe);
+        const randomWrapper = document.getElementById("random-wrapper-" + safe);
+        if (!constWrapper || !randomWrapper) return;
+
+        if (strategy === "constant") {
+          constWrapper.style.display = "block";
+          randomWrapper.style.display = "none";
+        } else {
+          constWrapper.style.display = "none";
+          randomWrapper.style.display = "block";
+        }
+      });
+    });
+  }
+
+  async function uploadPoolCSV(safeConcept, concept) {
+    const statusDiv = document.getElementById("csv-status-" + safeConcept);
+    const fileInput = document.querySelector(`.camp-csv-upload[data-safe="${safeConcept}"]`);
+    if (!statusDiv || !fileInput) return;
+
+    if (!fileInput.files || !fileInput.files[0]) {
+      statusDiv.textContent = "No file selected.";
+      statusDiv.style.color = "var(--muted)";
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append("fieldconcept", concept);
+    formData.append("csvfile", file);
+
+    try {
+      statusDiv.textContent = "Uploading...";
+      statusDiv.style.color = "var(--muted)";
+
+      const resp = await fetch(apiUrl("/random-values/import-csv"), { method:"POST", body: formData });
+      const result = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(result.detail || "Upload failed");
+
+      statusDiv.textContent = `${result.imported ?? 0} values imported`;
+      statusDiv.style.color = "var(--brand-2)";
+    } catch (err) {
+      console.error("CSV upload error", err);
+      statusDiv.textContent = "Error: " + (err?.message || String(err));
+      statusDiv.style.color = "var(--danger)";
+    }
+  }
+  window.uploadPoolCSV = uploadPoolCSV;
+
+  async function previewRandomValues(safeConcept, concept) {
+    const previewDiv = document.getElementById("preview-" + safeConcept);
+    if (!previewDiv) return;
+
+    try {
+      previewDiv.style.display = "block";
+      previewDiv.style.color = "var(--muted)";
+      previewDiv.textContent = "Loading preview...";
+
+      const resp = await fetch(apiUrl("/random-values/" + encodeURIComponent(concept) + "/sample?limit=5"));
+      const result = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(result.detail || "Preview failed");
+
+      const values = result.values || [];
+      if (!values.length) {
+        previewDiv.textContent = "Pool is empty.";
+        previewDiv.style.color = "var(--warn)";
+      } else {
+        previewDiv.textContent = "Sample: " + values.map(v => String(v)).join(", ");
+        previewDiv.style.color = "var(--brand-2)";
+      }
+    } catch (err) {
+      console.error("Preview error", err);
+      previewDiv.style.display = "block";
+      previewDiv.textContent = "Error: " + (err?.message || String(err));
+      previewDiv.style.color = "var(--danger)";
+    }
+  }
+  window.previewRandomValues = previewRandomValues;
+
+  async function checkPoolCount(safeConcept, concept) {
+    const previewDiv = document.getElementById("preview-" + safeConcept);
+    if (!previewDiv) return;
+
+    try {
+      previewDiv.style.display = "block";
+      previewDiv.style.color = "var(--muted)";
+      previewDiv.textContent = "Checking pool...";
+
+      const resp = await fetch(apiUrl("/random-values/" + encodeURIComponent(concept) + "/count"));
+      const result = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(result.detail || "Check failed");
+
+      const count = result.count ?? 0;
+      previewDiv.textContent = `Pool has ${count} values.`;
+      previewDiv.style.color = count ? "var(--brand-2)" : "var(--warn)";
+    } catch (err) {
+      console.error("Pool check error", err);
+      previewDiv.style.display = "block";
+      previewDiv.textContent = "Error: " + (err?.message || String(err));
+      previewDiv.style.color = "var(--danger)";
+    }
+  }
+  window.checkPoolCount = checkPoolCount;
+
+  async function loadPoolStatus(fields) {
+    const statusText = document.getElementById("camp-stats-text");
+    if (!statusText) return;
+
+    try {
+      statusText.innerHTML = "Checking pools...";
+
+      const loaded = [];
+      const empty = [];
+
+      for (const field of fields) {
+        const concept = field.concept || field.fieldConcept || "unknown";
+        const resp = await fetch(apiUrl("/random-values/" + encodeURIComponent(concept) + "/count"));
+        const result = await resp.json().catch(() => ({}));
+        const count = result.count ?? 0;
+
+        if (count > 0) loaded.push(`${concept} (${count})`);
+        else empty.push(concept);
+      }
+
+      if (!empty.length) {
+        statusText.innerHTML = `<span style="color:#059669; font-weight:700">All pools have data.</span>`;
+        return;
+      }
+
+      const loadedLine = loaded.length
+        ? `<span style="color:#059669; font-weight:700">Loaded pools:</span> ${escapeHtml(loaded.join(", "))}`
+        : "";
+
+      const emptyLine = empty.length
+        ? `<span style="color:#f59e0b; font-weight:700">Empty pools:</span> ${escapeHtml(empty.join(", "))}`
+        : "";
+
+      statusText.innerHTML = loadedLine + (loadedLine && emptyLine ? "<br>" : "") + emptyLine;
+    } catch (err) {
+      console.error("Pool status error", err);
+      statusText.innerHTML =
+        `<span style="color:var(--danger)">Error checking pools: ${escapeHtml(err?.message || String(err))}</span>`;
+    }
+  }
+
+
+    /* -----------------------------
+      Wizard button handlers (MINIMUM FIX HERE)
+    ------------------------------*/
+    const modal = document.getElementById("campaign-modal");
+    const btnNew = document.getElementById("btn-new-campaign");
+    const btnClose = document.getElementById("btn-close-campaign");
+    const btnPrev = document.getElementById("btn-prev-step");
+    const btnNext = document.getElementById("btn-next-step");
+    const btnLaunch = document.getElementById("btn-launch");
+    const confirmLaunch = document.getElementById("confirm-launch");
+
+    btnNew?.addEventListener("click", openModal);
+    btnClose?.addEventListener("click", closeModal);
+
+    // MINIMUM CHANGE: make this null-safe so script never crashes
+    modal?.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    btnPrev?.addEventListener("click", () => { wizardStep = Math.max(1, wizardStep - 1); renderWizard(); });
+    btnNext?.addEventListener("click", () => { wizardStep = Math.min(4, wizardStep + 1); renderWizard(); });
+
+    confirmLaunch?.addEventListener("change", () => {
+      if (!btnLaunch) return;
+      btnLaunch.disabled = !(wizardStep === 4 && confirmLaunch.checked);
+    });
+
+    document.getElementById("btn-add-url")?.addEventListener("click", () => {
+      const input = document.getElementById("single-url");
+      if (!input) return;
+      addSitesBulk([input.value || ""]);
+      input.value = "";
+    });
+
+    document.getElementById("csv-file")?.addEventListener("change", async (e) => {
+      const file = e.target?.files?.[0];
+      if (!file) return;
+
+      const text = await file.text();
+      const lines = text.split(/\r?\n/);
+
+      const CHUNK = 500;
+      let buffer = [];
+      for (let i = 0; i < lines.length; i++){
+        const line = (lines[i] || "").trim();
+        if (!line) continue;
+        const first = line.split(",")[0].trim();
+        if (!first) continue;
+
+        buffer.push(first);
+        if (buffer.length >= CHUNK){
+          addSitesBulk(buffer);
+          buffer = [];
+          await yieldToUI();
+        }
+      }
+      if (buffer.length) addSitesBulk(buffer);
+      drawAddedSites();
+    });
+
+    btnLaunch?.addEventListener("click", async () => {
+      if (!(wizardStep === 4 && confirmLaunch?.checked)) return;
+      await launchCampaignRun();
+    });
+
+    /* -----------------------------
+      Start initial loads
+    ------------------------------*/
+    loadDashboard();
+    loadCampaigns();
+  </script>
+</body>
+</html>

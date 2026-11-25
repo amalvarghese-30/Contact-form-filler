@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Analytics Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #020617;
+            color: #e5e7eb;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            background: #020617;
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 16px;
+            box-shadow: 0 20px 40px rgba(15,23,42,0.8);
+        }
+        .header h1 { font-size: 28px; margin-bottom: 6px; }
+        .header p { font-size: 14px; color: #9ca3af; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: #020617;
+            border-radius: 14px;
+            padding: 18px 20px;
+            box-shadow: 0 16px 30px rgba(15,23,42,0.65);
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 6px;
+        }
+        .stat-value {
+            font-size: 30px;
+            font-weight: 700;
+            color: #38bdf8;
+        }
+
+        .section {
+            background: #020617;
+            border-radius: 14px;
+            padding: 20px 22px 24px 22px;
+            margin-bottom: 16px;
+            box-shadow: 0 16px 30px rgba(15,23,42,0.65);
+        }
+        .section h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #1f2937;
+            text-align: left;
+        }
+        th {
+            background: #020617;
+            color: #9ca3af;
+            position: sticky;
+            top: 0;
+        }
+
+        .website-item {
+            background: #1f2937;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            padding: 12px;
+            cursor: pointer;
+        }
+        .website-item:hover { background: #374151; }
+        .website-url {
+            font-weight: 600;
+            color: #38bdf8;
+            margin-bottom: 4px;
+        }
+        .website-count {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .website-fields {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #4b5563;
+        }
+        .website-fields.open { display: block; }
+        .field-tag {
+            display: inline-block;
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 4px 4px 4px 0;
+            font-size: 12px;
+        }
+
+        .pager {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .pager button {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #020617;
+            color: #e5e7eb;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .pager button:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .tag {
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: #0f172a;
+            color: #9ca3af;
+        }
+
+        .sim-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .sim-controls label {
+            font-size: 13px;
+            color: #e5e7eb;
+        }
+        .sim-controls input {
+            width: 100px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #1f2937;
+            background: #0f172a;
+            color: #e5e7eb;
+            font-size: 12px;
+        }
+        .sim-controls input:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+        .btn-sim {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #0f172a;
+            color: #38bdf8;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-sim:hover {
+            background: #1f2937;
+            border-color: #38bdf8;
+        }
+        .btn-sim:active { transform: scale(0.98); }
+        .sim-result {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-left: 6px;
+        }
+        .sim-result.success { color: #10b981; }
+        .sim-result.error { color: #ef4444; }
+
+        /* Smart auto-fill form styles */
+        .fill-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .fill-form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .fill-form-field label {
+            font-size: 12px;
+            color: #d1d5db;
+            font-weight: 500;
+        }
+        .fill-form-field input,
+        .fill-form-field textarea {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #1f2937;
+            background: #0f172a;
+            color: #e5e7eb;
+            font-size: 12px;
+        }
+        .fill-form-field input:focus,
+        .fill-form-field textarea:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56,189,248,0.1);
+        }
+        .fill-form-field textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        .fill-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-fill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #0f172a;
+            color: #a78bfa;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-fill:hover {
+            background: #1f2937;
+            border-color: #a78bfa;
+        }
+        .btn-fill:active { transform: scale(0.98); }
+        .fill-status {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .fill-status.success { color: #10b981; }
+        .fill-status.error { color: #ef4444; }
+        .progress-bar {
+            width: 0%;
+            height: 4px;
+            background: #38bdf8;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📊 Form Analytics Dashboard</h1>
+        <p>Form field analysis, random submissions, and frequency tracking</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-label">Websites in database</div>
+            <div class="stat-value" id="websites-count">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Visited at least once</div>
+            <div class="stat-value" id="visited-count">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Websites with forms found</div>
+            <div class="stat-value" id="forms-found-count">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">CAPTCHA encountered</div>
+            <div class="stat-value" id="captcha-count">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Dead sites (no form)</div>
+            <div class="stat-value" id="dead-sites-count">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Sites with 0 fields</div>
+            <div class="stat-value" id="zero-fields-count">-</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Websites & Their Form Fields <span class="tag">click to expand</span></h2>
+        <div id="websites-fields-list">Loading...</div>
+        <div class="pager">
+            <button id="ws-prev">&laquo; Prev</button>
+            <span id="ws-page-indicator">Page 1</span>
+            <button id="ws-next">Next &raquo;</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Dead Sites (form not found)</h2>
+        <div id="dead-sites-list">Loading...</div>
+        <div class="pager">
+            <button id="dead-prev">&laquo; Prev</button>
+            <span id="dead-page-indicator">Page 1</span>
+            <button id="dead-next">Next &raquo;</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Sites With 0 Fields</h2>
+        <div id="zero-sites-list">Loading...</div>
+        <div class="pager">
+            <button id="zero-prev">&laquo; Prev</button>
+            <span id="zero-page-indicator">Page 1</span>
+            <button id="zero-next">Next &raquo;</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Simulate Random Form Submission <span class="tag">testing</span></h2>
+        <div class="sim-controls">
+            <label for="sim-website-id">Website ID:</label>
+            <input id="sim-website-id" type="number" placeholder="e.g. 1">
+            <button id="sim-submit-btn" class="btn-sim">Run Simulation</button>
+            <span id="sim-result" class="sim-result">Ready</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Normalized Field Fill Counts <span class="tag">from submissions</span></h2>
+        <div id="normalized-counts">Loading...</div>
+        <div class="pager">
+            <button id="counts-prev">&laquo; Prev</button>
+            <span id="counts-page-indicator">Page 1</span>
+            <button id="counts-next">Next &raquo;</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>All Unique Form Fields <span class="tag">complete list</span></h2>
+        <div id="all-fields-list">Loading...</div>
+        <div class="pager">
+            <button id="all-prev">&laquo; Prev</button>
+            <span id="all-page-indicator">Page 1</span>
+            <button id="all-next">Next &raquo;</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Field Frequency Across Forms <span class="tag">how many times</span></h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Field Name</th>
+                <th>Frequency (Total Occurrences)</th>
+            </tr>
+            </thead>
+            <tbody id="frequency-body">
+            <tr><td colspan="2">Loading...</td></tr>
+            </tbody>
+        </table>
+        <div class="pager">
+            <button id="freq-prev">&laquo; Prev</button>
+            <span id="freq-page-indicator">Page 1</span>
+            <button id="freq-next">Next &raquo;</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Field Clustering Mapping <span class="tag">raw → normalized</span></h2>
+        <div id="mapping-list">Loading...</div>
+        <div class="pager">
+            <button id="mapping-prev">&laquo; Prev</button>
+            <span id="mapping-page-indicator">Page 1</span>
+            <button id="mapping-next">Next &raquo;</button>
+        </div>
+    </div>
+
+    <!-- NEW: Smart auto-fill section driven by concepts -->
+    <div class="section">
+        <h2>🚀 Smart Auto-Fill Forms <span class="tag">auto-detected fields</span></h2>
+        <p style="color: #9ca3af; font-size: 12px; margin-bottom: 10px;">
+            Fields below are automatically detected from all websites. Common fields are shown; optional fields can be expanded.
+        </p>
+
+        <div id="fields-loading" style="text-align: center; color: #9ca3af;">
+            <p>Loading form fields...</p>
+        </div>
+
+        <div id="section-essential" style="display: none;">
+            <h3 style="font-size: 14px; color: #38bdf8; margin-top: 0; margin-bottom: 8px;">Essential Fields</h3>
+            <div class="fill-form-grid" id="essential-fields-container"></div>
+        </div>
+
+        <div id="section-common" style="display: none; margin-top: 15px;">
+            <h3 style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">
+                <span style="cursor: pointer; user-select: none;" onclick="toggleSection('common')">
+                    ▼ Common Fields
+                </span>
+            </h3>
+            <div class="fill-form-grid" id="common-fields-container" style="display: none;"></div>
+        </div>
+
+        <div id="section-optional" style="display: none; margin-top: 15px;">
+            <h3 style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">
+                <span style="cursor: pointer; user-select: none;" onclick="toggleSection('optional')">
+                    ► Optional Fields
+                </span>
+            </h3>
+            <div class="fill-form-grid" id="optional-fields-container" style="display: none;"></div>
+        </div>
+
+        <div class="fill-actions" style="margin-top: 15px;">
+            <button id="auto-fill-btn" class="btn-fill">Fill All Forms</button>
+            <input id="auto-max-websites" type="number" value="50" min="1" max="500"
+                   placeholder="Max websites" style="width: 120px;">
+            <span id="auto-fill-result" class="fill-status">Ready</span>
+        </div>
+
+        <div id="auto-progress" class="progress-container" style="display: none; margin-top: 10px;">
+            <div class="progress-bar" id="auto-progress-bar" style="width: 0%;"></div>
+            <span id="auto-progress-text" style="font-size: 12px; color: #9ca3af; margin-top: 4px;">
+                Starting...
+            </span>
+        </div>
+
+        <div id="field-stats" style="margin-top: 15px; padding: 10px; background: #1f2937; border-radius: 6px; font-size: 12px;">
+            <span id="stats-text" style="color: #9ca3af;">Loading statistics...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_BASE = 'http://127.0.0.1:8000/api';
+
+let websitesFieldsPage = 0;
+let deadSitesPage = 0;
+let zeroSitesPage = 0;
+const WS_PAGE_SIZE = 10;
+const DEAD_PAGE_SIZE = 10;
+const ZERO_PAGE_SIZE = 10;
+
+let allFieldsData = [];
+let allFieldsPage = 0;
+const ALL_PAGE_SIZE = 10;
+
+let freqData = [];
+let freqPage = 0;
+const FREQ_PAGE_SIZE = 10;
+
+let mappingData = [];
+let mappingPage = 0;
+const MAPPING_PAGE_SIZE = 10;
+
+let countsData = [];
+let countsPage = 0;
+const COUNTS_PAGE_SIZE = 10;
+
+let deadSitesTotal = 0;
+let zeroSitesTotal = 0;
+
+let isFillingForms = false;
+
+async function loadDashboard() {
+    try {
+        const webResp = await fetch(`${API_BASE}/websites`);
+        if (!webResp.ok) throw new Error('websites ' + webResp.status);
+        const webData = await webResp.json();
+
+        document.getElementById('websites-count').textContent = webData.total || 0;
+        document.getElementById('visited-count').textContent = webData.visited || 0;
+        document.getElementById('forms-found-count').textContent = webData.forms_total || 0;
+        document.getElementById('captcha-count').textContent = webData.captcha_total || 0;
+        document.getElementById('dead-sites-count').textContent = webData.dead_sites || 0;
+        document.getElementById('zero-fields-count').textContent = webData.zero_field_sites || 0;
+
+        deadSitesTotal = webData.dead_sites || 0;
+        zeroSitesTotal = webData.zero_field_sites || 0;
+
+        await loadWebsitesFields();
+        await loadDeadSites();
+        await loadZeroFieldSites();
+        await loadAllFields();
+        await loadFieldFrequency();
+        await loadFieldMapping();
+        await loadNormalizedCounts();
+        await loadFormTemplate();
+    } catch (err) {
+        console.error('Dashboard load error', err);
+    }
+}
+
+async function loadWebsitesFields() {
+    try {
+        const resp = await fetch(
+            `${API_BASE}/websites-with-fields?skip=${websitesFieldsPage * WS_PAGE_SIZE}&limit=${WS_PAGE_SIZE}`
+        );
+        if (!resp.ok) throw new Error('websites-with-fields ' + resp.status);
+        const data = await resp.json();
+        const sites = data.items || [];
+
+        const container = document.getElementById('websites-fields-list');
+        if (!sites.length) {
+            container.textContent = 'No websites with form fields yet.';
+        } else {
+            let html = '';
+            for (const ws of sites) {
+                const seen = new Set();
+                const labels = [];
+                for (const f of (ws.fields || [])) {
+                    const label = f.placeholder || f.field_name || 'unknown';
+                    if (!seen.has(label)) {
+                        seen.add(label);
+                        labels.push(label);
+                    }
+                }
+
+                const fieldsList = labels
+                    .map(label => `<span class="field-tag">${label}</span>`)
+                    .join('');
+
+                html += `<div class="website-item" onclick="toggleFields(this)">
+                    <div class="website-url">${ws.url}</div>
+                    <div class="website-count">${labels.length} unique fields</div>
+                    <div class="website-fields">
+                        ${fieldsList || 'No fields'}
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        document.getElementById('ws-page-indicator').textContent = `Page ${websitesFieldsPage + 1}`;
+    } catch (err) {
+        console.error('websites-with-fields error', err);
+        document.getElementById('websites-fields-list').textContent = 'Error loading websites.';
+    }
+}
+
+function toggleFields(element) {
+    const fieldsDiv = element.querySelector('.website-fields');
+    fieldsDiv.classList.toggle('open');
+}
+
+async function loadDeadSites() {
+    try {
+        const resp = await fetch(
+            `${API_BASE}/dead-sites?skip=${deadSitesPage * DEAD_PAGE_SIZE}&limit=${DEAD_PAGE_SIZE}`
+        );
+        if (!resp.ok) throw new Error('dead-sites ' + resp.status);
+        const data = await resp.json();
+        const items = data.items || [];
+        deadSitesTotal = data.total || deadSitesTotal;
+
+        const container = document.getElementById('dead-sites-list');
+        if (!items.length) {
+            container.textContent = 'No dead sites.';
+        } else {
+            let html = '<table><thead><tr><th>#</th><th>Website ID</th><th>URL</th></tr></thead><tbody>';
+            items.forEach((item, idx) => {
+                const index = deadSitesPage * DEAD_PAGE_SIZE + idx + 1;
+                html += `<tr>
+                    <td>${index}</td>
+                    <td>${item.id}</td>
+                    <td>${item.url}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        document.getElementById('dead-page-indicator').textContent = `Page ${deadSitesPage + 1}`;
+
+        const maxPage = Math.max(0, Math.ceil(deadSitesTotal / DEAD_PAGE_SIZE) - 1);
+        document.getElementById('dead-prev').disabled = deadSitesPage <= 0;
+        document.getElementById('dead-next').disabled = deadSitesPage >= maxPage;
+    } catch (err) {
+        console.error('dead-sites error', err);
+        document.getElementById('dead-sites-list').textContent = 'Error loading dead sites.';
+    }
+}
+
+async function loadZeroFieldSites() {
+    try {
+        const resp = await fetch(
+            `${API_BASE}/zero-field-sites?skip=${zeroSitesPage * ZERO_PAGE_SIZE}&limit=${ZERO_PAGE_SIZE}`
+        );
+        if (!resp.ok) throw new Error('zero-field-sites ' + resp.status);
+        const data = await resp.json();
+        const items = data.items || [];
+        zeroSitesTotal = data.total || zeroSitesTotal;
+
+        const container = document.getElementById('zero-sites-list');
+        if (!items.length) {
+            container.textContent = 'No zero-field sites.';
+        } else {
+            let html = '<table><thead><tr><th>#</th><th>Website ID</th><th>URL</th></tr></thead><tbody>';
+            items.forEach((item, idx) => {
+                const index = zeroSitesPage * ZERO_PAGE_SIZE + idx + 1;
+                html += `<tr>
+                    <td>${index}</td>
+                    <td>${item.id}</td>
+                    <td>${item.url}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        document.getElementById('zero-page-indicator').textContent = `Page ${zeroSitesPage + 1}`;
+
+        const maxPage = Math.max(0, Math.ceil(zeroSitesTotal / ZERO_PAGE_SIZE) - 1);
+        document.getElementById('zero-prev').disabled = zeroSitesPage <= 0;
+        document.getElementById('zero-next').disabled = zeroSitesPage >= maxPage;
+    } catch (err) {
+        console.error('zero-field-sites error', err);
+        document.getElementById('zero-sites-list').textContent = 'Error loading zero-field sites.';
+    }
+}
+
+async function loadAllFields() {
+    try {
+        const resp = await fetch(`${API_BASE}/all-fields`);
+        if (!resp.ok) throw new Error('all-fields ' + resp.status);
+        const data = await resp.json();
+        allFieldsData = data.items || [];
+        allFieldsPage = 0;
+        renderAllFields();
+    } catch (err) {
+        console.error('all-fields error', err);
+        document.getElementById('all-fields-list').textContent = 'Error loading fields.';
+    }
+}
+
+function renderAllFields() {
+    const container = document.getElementById('all-fields-list');
+    if (!allFieldsData.length) {
+        container.textContent = 'No fields found.';
+        return;
+    }
+
+    const start = allFieldsPage * ALL_PAGE_SIZE;
+    const pageItems = allFieldsData.slice(start, start + ALL_PAGE_SIZE);
+
+    let html = '<table><thead><tr><th>Field Name</th><th>Total Occurrences</th></tr></thead><tbody>';
+    for (const f of pageItems) {
+        html += `<tr><td>${f.name}</td><td><strong>${f.total_count}</strong></td></tr>`;
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+
+    const maxPage = Math.max(0, Math.ceil(allFieldsData.length / ALL_PAGE_SIZE) - 1);
+    document.getElementById('all-prev').disabled = allFieldsPage <= 0;
+    document.getElementById('all-next').disabled = allFieldsPage >= maxPage;
+    document.getElementById('all-page-indicator').textContent = `Page ${allFieldsPage + 1} / ${maxPage + 1}`;
+}
+
+async function loadFieldFrequency() {
+    try {
+        const resp = await fetch(`${API_BASE}/field-frequency`);
+        if (!resp.ok) throw new Error('field-frequency ' + resp.status);
+        const data = await resp.json();
+        freqData = data.items || [];
+        freqPage = 0;
+        renderFieldFrequency();
+    } catch (err) {
+        console.error('field-frequency error', err);
+        document.getElementById('frequency-body').innerHTML =
+            '<tr><td colspan="2">Error loading frequency data.</td></tr>';
+    }
+}
+
+function renderFieldFrequency() {
+    const tbody = document.getElementById('frequency-body');
+    if (!freqData.length) {
+        tbody.innerHTML = '<tr><td colspan="2">No frequency data.</td></tr>';
+        return;
+    }
+
+    const start = freqPage * FREQ_PAGE_SIZE;
+    const pageItems = freqData.slice(start, start + FREQ_PAGE_SIZE);
+
+    let html = '';
+    for (const f of pageItems) {
+        html += `<tr><td>${f.field}</td><td>${f.frequency}</td></tr>`;
+    }
+    tbody.innerHTML = html;
+
+    const maxPage = Math.max(0, Math.ceil(freqData.length / FREQ_PAGE_SIZE) - 1);
+    document.getElementById('freq-prev').disabled = freqPage <= 0;
+    document.getElementById('freq-next').disabled = freqPage >= maxPage;
+    document.getElementById('freq-page-indicator').textContent = `Page ${freqPage + 1} / ${maxPage + 1}`;
+}
+
+async function loadFieldMapping() {
+    try {
+        const resp = await fetch(`${API_BASE}/field-mapping`);
+        if (!resp.ok) throw new Error('field-mapping ' + resp.status);
+        const data = await resp.json();
+        mappingData = data.items || [];
+        mappingPage = 0;
+        renderFieldMapping();
+    } catch (err) {
+        console.error('field-mapping error', err);
+        document.getElementById('mapping-list').textContent = 'Error loading mapping.';
+    }
+}
+
+function renderFieldMapping() {
+    const container = document.getElementById('mapping-list');
+    if (!mappingData.length) {
+        container.textContent = 'No mapping data.';
+        return;
+    }
+
+    const start = mappingPage * MAPPING_PAGE_SIZE;
+    const pageItems = mappingData.slice(start, start + MAPPING_PAGE_SIZE);
+
+    let html = '<table><thead><tr><th>Normalized Cluster</th><th>Total Raw Fields</th></tr></thead><tbody>';
+    for (const m of pageItems) {
+        html += `<tr><td>${m.cluster_label}</td><td><strong>${m.field_count}</strong></td></tr>`;
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+
+    const maxPage = Math.max(0, Math.ceil(mappingData.length / MAPPING_PAGE_SIZE) - 1);
+    document.getElementById('mapping-prev').disabled = mappingPage <= 0;
+    document.getElementById('mapping-next').disabled = mappingPage >= maxPage;
+    document.getElementById('mapping-page-indicator').textContent = `Page ${mappingPage + 1} / ${maxPage + 1}`;
+}
+
+async function loadNormalizedCounts() {
+    try {
+        const resp = await fetch(`${API_BASE}/normalized-counts`);
+        if (!resp.ok) throw new Error('normalized-counts ' + resp.status);
+        const data = await resp.json();
+        countsData = data.items || [];
+        countsPage = 0;
+        renderNormalizedCounts();
+    } catch (err) {
+        console.error('normalized-counts error', err);
+        document.getElementById('normalized-counts').textContent = 'Error loading counts.';
+    }
+}
+
+function renderNormalizedCounts() {
+    const container = document.getElementById('normalized-counts');
+    if (!countsData.length) {
+        container.textContent = 'No submissions yet.';
+        return;
+    }
+
+    const start = countsPage * COUNTS_PAGE_SIZE;
+    const pageItems = countsData.slice(start, start + COUNTS_PAGE_SIZE);
+
+    let html = '<table><thead><tr><th>Normalized Field</th><th>Times Filled</th></tr></thead><tbody>';
+    for (const row of pageItems) {
+        html += `<tr><td>${row.normalized_field}</td><td><strong>${row.times_filled}</strong></td></tr>`;
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+
+    const maxPage = Math.max(0, Math.ceil(countsData.length / COUNTS_PAGE_SIZE) - 1);
+    document.getElementById('counts-prev').disabled = countsPage <= 0;
+    document.getElementById('counts-next').disabled = countsPage >= maxPage;
+    document.getElementById('counts-page-indicator').textContent = `Page ${countsPage + 1} / ${maxPage + 1}`;
+}
+
+async function simulateSubmission() {
+    const input = document.getElementById('sim-website-id');
+    const resultEl = document.getElementById('sim-result');
+    const wid = parseInt(input.value, 10);
+
+    if (!wid || wid <= 0) {
+        resultEl.textContent = 'Enter a valid website ID.';
+        resultEl.className = 'sim-result error';
+        return;
+    }
+
+    resultEl.textContent = 'Running...';
+    resultEl.className = 'sim-result';
+
+    try {
+        const resp = await fetch(`${API_BASE}/simulate-submission`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({website_id: wid})
+        });
+        const data = await resp.json();
+
+        if (!data.ok) {
+            resultEl.textContent = 'No fields filled (' + (data.reason || 'unknown') + ').';
+            resultEl.className = 'sim-result error';
+        } else {
+            resultEl.textContent = `✓ Inserted ${data.filled_count} fields.`;
+            resultEl.className = 'sim-result success';
+            await loadNormalizedCounts();
+        }
+    } catch (err) {
+        console.error('simulate-submission error', err);
+        resultEl.textContent = 'Error: ' + err.message;
+        resultEl.className = 'sim-result error';
+    }
+}
+
+/* Smart auto-fill helpers */
+
+async function loadFormTemplate() {
+    try {
+        const resp = await fetch(`${API_BASE}/fill-form-template`);
+        const data = await resp.json();
+        document.getElementById('fields-loading').style.display = 'none';
+        renderFormSections(data);
+        loadFieldStats();
+    } catch (err) {
+        console.error('Error loading form template:', err);
+        document.getElementById('fields-loading').innerHTML =
+            '<span style="color:#ef4444;">Error loading fields.</span>';
+    }
+}
+
+function renderFormSections(template) {
+    if (template.common_fields && template.common_fields.length) {
+        renderFieldGroup(template.common_fields, 'essential-fields-container');
+        document.getElementById('section-essential').style.display = 'block';
+    }
+    if (template.optional_fields && template.optional_fields.length) {
+        renderFieldGroup(template.optional_fields, 'common-fields-container');
+        document.getElementById('section-common').style.display = 'block';
+    }
+    if (template.rare_fields && template.rare_fields.length) {
+        renderFieldGroup(template.rare_fields, 'optional-fields-container');
+        document.getElementById('section-optional').style.display = 'block';
+    }
+}
+
+function renderFieldGroup(fields, containerId) {
+    const container = document.getElementById(containerId);
+    let html = '';
+    for (const f of fields) {
+        const concept = f.concept;
+        const id = `field-${concept}`;
+        const isTextarea = concept === 'message' || concept === 'address';
+        if (isTextarea) {
+            html += `<div class="fill-form-field">
+                <label for="${id}">${f.human_name}</label>
+                <textarea id="${id}" placeholder="Enter ${f.human_name.toLowerCase()}"></textarea>
+            </div>`;
+        } else {
+            html += `<div class="fill-form-field">
+                <label for="${id}">${f.human_name}</label>
+                <input id="${id}" type="text" placeholder="Enter ${f.human_name.toLowerCase()}">
+            </div>`;
+        }
+    }
+    container.innerHTML = html;
+}
+
+function toggleSection(name) {
+    const container = document.getElementById(`${name}-fields-container`);
+    container.style.display = container.style.display === 'none' ? 'block' : 'none';
+}
+
+async function loadFieldStats() {
+    try {
+        const resp = await fetch(`${API_BASE}/concept-stats`);
+        const stats = await resp.json();
+        const statsEl = document.getElementById('stats-text');
+        statsEl.innerHTML = `
+            <strong>Form Field Statistics:</strong><br>
+            ✓ Active concepts: ${stats.active_concepts}<br>
+            ⚠ Unmapped fields: ${stats.unmapped_fields}
+        `;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function submitAutoFill() {
+    if (isFillingForms) return;
+    isFillingForms = true;
+
+    const resultEl = document.getElementById('auto-fill-result');
+    const progressBar = document.getElementById('auto-progress-bar');
+    const progressText = document.getElementById('auto-progress-text');
+    document.getElementById('auto-progress').style.display = 'block';
+
+    const userData = {};
+    document.querySelectorAll('.fill-form-field input, .fill-form-field textarea')
+        .forEach(el => {
+            const concept = el.id.replace('field-', '');
+            if (el.value.trim()) userData[concept] = el.value.trim();
+        });
+
+    if (!Object.keys(userData).length) {
+        resultEl.textContent = 'Please fill at least one field';
+        resultEl.className = 'fill-status error';
+        isFillingForms = false;
+        return;
+    }
+
+    resultEl.textContent = 'Starting...';
+    resultEl.className = 'fill-status';
+
+    try {
+        const maxWebsites = parseInt(document.getElementById('auto-max-websites').value) || 50;
+        await fetch(`${API_BASE}/fill-all-forms`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user_data: userData, max_websites: maxWebsites })
+        });
+
+        let done = false;
+        while (!done) {
+            const sResp = await fetch(`${API_BASE}/fill-status`);
+            const status = await sResp.json();
+            if (status.running) {
+                const pct = status.total ? (status.progress / status.total) * 100 : 0;
+                progressBar.style.width = pct + '%';
+                progressText.textContent =
+                    `Processing: ${status.progress}/${status.total} websites`;
+                await new Promise(r => setTimeout(r, 1000));
+            } else {
+                done = true;
+                progressBar.style.width = '100%';
+                if (status.results) {
+                    resultEl.className = 'fill-status success';
+                    resultEl.textContent =
+                        `✓ Complete! Success: ${status.results.success} | Failed: ${status.results.failed} | CAPTCHA: ${status.results.captcha}`;
+                } else {
+                    resultEl.textContent = 'Completed';
+                }
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        resultEl.className = 'fill-status error';
+        resultEl.textContent = 'Error: ' + err.message;
+    }
+    isFillingForms = false;
+}
+
+/* Pagination button bindings */
+document.getElementById('ws-prev').onclick = () => {
+    websitesFieldsPage = Math.max(0, websitesFieldsPage - 1);
+    loadWebsitesFields();
+};
+document.getElementById('ws-next').onclick = () => {
+    websitesFieldsPage++;
+    loadWebsitesFields();
+};
+document.getElementById('dead-prev').onclick = () => {
+    deadSitesPage = Math.max(0, deadSitesPage - 1);
+    loadDeadSites();
+};
+document.getElementById('dead-next').onclick = () => {
+    deadSitesPage++;
+    loadDeadSites();
+};
+document.getElementById('zero-prev').onclick = () => {
+    zeroSitesPage = Math.max(0, zeroSitesPage - 1);
+    loadZeroFieldSites();
+};
+document.getElementById('zero-next').onclick = () => {
+    zeroSitesPage++;
+    loadZeroFieldSites();
+};
+document.getElementById('all-prev').onclick = () => {
+    allFieldsPage = Math.max(0, allFieldsPage - 1);
+    renderAllFields();
+};
+document.getElementById('all-next').onclick = () => {
+    const maxPage = Math.max(0, Math.ceil(allFieldsData.length / ALL_PAGE_SIZE) - 1);
+    allFieldsPage = Math.min(maxPage, allFieldsPage + 1);
+    renderAllFields();
+};
+document.getElementById('freq-prev').onclick = () => {
+    freqPage = Math.max(0, freqPage - 1);
+    renderFieldFrequency();
+};
+document.getElementById('freq-next').onclick = () => {
+    const maxPage = Math.max(0, Math.ceil(freqData.length / FREQ_PAGE_SIZE) - 1);
+    freqPage = Math.min(maxPage, freqPage + 1);
+    renderFieldFrequency();
+};
+document.getElementById('mapping-prev').onclick = () => {
+    mappingPage = Math.max(0, mappingPage - 1);
+    renderFieldMapping();
+};
+document.getElementById('mapping-next').onclick = () => {
+    const maxPage = Math.max(0, Math.ceil(mappingData.length / MAPPING_PAGE_SIZE) - 1);
+    mappingPage = Math.min(maxPage, mappingPage + 1);
+    renderFieldMapping();
+};
+document.getElementById('counts-prev').onclick = () => {
+    countsPage = Math.max(0, countsPage - 1);
+    renderNormalizedCounts();
+};
+document.getElementById('counts-next').onclick = () => {
+    const maxPage = Math.max(0, Math.ceil(countsData.length / COUNTS_PAGE_SIZE) - 1);
+    countsPage = Math.min(maxPage, countsPage + 1);
+    renderNormalizedCounts();
+};
+
+document.getElementById('sim-submit-btn').onclick = simulateSubmission;
+document.getElementById('auto-fill-btn').addEventListener('click', submitAutoFill);
+
+loadDashboard();
+// setInterval(loadDashboard, 30000);
+</script>
+</body>
+</html>

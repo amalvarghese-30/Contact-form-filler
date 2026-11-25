@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Operations Hub</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --text:#0f172a;
+      --border:#e5e7eb;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --brand:#2563eb;
+      --brand-2:#10b981;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    a{ color:inherit; text-decoration:none; }
+
+    /* Topbar */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:rgba(255,255,255,0.85);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+    .topbar-inner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:700;
+      letter-spacing:0.2px;
+    }
+    .brand-badge{
+      width:34px;
+      height:34px;
+      border-radius:10px;
+      background:linear-gradient(135deg, var(--brand), #60a5fa);
+      box-shadow: 0 10px 18px rgba(37,99,235,0.25);
+    }
+    .navtabs{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .tab{
+      padding:9px 12px;
+      border-radius:10px;
+      color:#334155;
+      border:1px solid transparent;
+      font-size:14px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      background:#eef2ff;
+      border-color:#dbeafe;
+      color:#1e3a8a;
+      font-weight:600;
+    }
+    .userpill{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .avatar{
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      background:#e2e8f0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      color:#334155;
+      border:1px solid var(--border);
+    }
+
+    /* Pages */
+    .main{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px;
+    }
+    .page{ display:none; }
+    .page.active{ display:block; }
+
+    /* Shared card */
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow: var(--shadow);
+    }
+
+    /* Dashboard */
+    .container{ max-width: 1200px; margin: 0 auto; }
+    .header{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+    .header h1{ margin:0 0 6px 0; font-size: 24px; }
+    .header p{ margin:0; font-size: 13px; color: var(--muted); }
+
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stat-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+    .stat-label{ font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .stat-value{ font-size: 26px; font-weight: 750; color: #0f172a; }
+
+    .section{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 18px 20px 18px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+    .section h2{
+      font-size: 16px;
+      margin:0 0 10px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    table{ width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td{ padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+    th{
+      background: #f8fafc;
+      color:#475569;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .tag{
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color:#475569;
+      border:1px solid #e2e8f0;
+    }
+
+    .website-item{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      padding: 12px;
+      cursor: pointer;
+    }
+    .website-item:hover{ background:#f1f5f9; }
+    .website-url{ font-weight: 650; color: #1d4ed8; margin-bottom: 4px; }
+    .website-count{ font-size: 12px; color: var(--muted); }
+    .website-fields{
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #cbd5e1;
+    }
+    .website-fields.open{ display:block; }
+    .field-tag{
+      display:inline-block;
+      background:#eef2ff;
+      color:#1e3a8a;
+      border:1px solid #dbeafe;
+      padding: 4px 8px;
+      border-radius: 999px;
+      margin: 4px 4px 4px 0;
+      font-size: 12px;
+    }
+
+    .pager{
+      display:flex;
+      justify-content:flex-end;
+      align-items:center;
+      gap:8px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .pager button{
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #0f172a;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .pager button:disabled{ opacity: 0.5; cursor: default; }
+
+    .errbox{
+      background:#fff7ed;
+      border:1px solid #fed7aa;
+      color:#9a3412;
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:12px;
+    }
+
+    /* Campaigns page */
+    .page-title{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 12px;
+    }
+    .page-title h1{ margin:0; font-size: 26px; }
+    .page-title p{ margin:6px 0 0 0; color:var(--muted); font-size: 13px; }
+    .btn-primary{
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #dbeafe;
+      background: var(--brand);
+      color:#fff;
+      cursor:pointer;
+      font-weight:700;
+      box-shadow: 0 10px 18px rgba(37,99,235,0.22);
+    }
+    .filters{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin: 12px 0;
+    }
+    .select{
+      padding: 10px 12px;
+      border-radius: 10px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-size: 13px;
+      color:#0f172a;
+    }
+    .campaign-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+    .campaign-card{ padding: 14px; }
+    .campaign-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .campaign-name{
+      font-weight:800;
+      margin:0;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+    .pill{
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border:1px solid #e2e8f0;
+      background: #f8fafc;
+      color:#334155;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .pill.running{ background:#fffbeb; border-color:#fde68a; color:#92400e; }
+    .pill.completed{ background:#ecfdf5; border-color:#bbf7d0; color:#065f46; }
+    .pill.paused{ background:#f1f5f9; border-color:#e2e8f0; color:#475569; }
+    .pill.error{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    .campaign-progress{
+      margin: 8px 0 10px 0;
+      color:#334155;
+      font-size: 13px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .bar{
+      height: 8px;
+      border-radius: 999px;
+      background:#e5e7eb;
+      overflow:hidden;
+      margin: 6px 0 10px 0;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg, var(--warn), #fbbf24);
+    }
+    .bar.green > div{ background: linear-gradient(90deg, var(--brand-2), #34d399); }
+    .bar.gray > div{ background: linear-gradient(90deg, #94a3b8, #cbd5e1); }
+    .bar.red > div{ background: linear-gradient(90deg, var(--danger), #fb7185); }
+    .campaign-meta{
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      gap: 12px;
+      flex-wrap:wrap;
+      margin-bottom: 12px;
+    }
+    .campaign-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .btn-ghost{
+      padding: 8px 12px;
+      border-radius: 10px;
+      border:1px solid var(--border);
+      background:#fff;
+      cursor:pointer;
+      font-weight:650;
+      font-size: 13px;
+      color:#0f172a;
+    }
+
+    /* Modal wizard */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background: rgba(15, 23, 42, 0.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 100;
+    }
+    .modal-backdrop.open{ display:flex; }
+    .modal{
+      width:min(980px, 100%);
+      max-height: 92vh;
+      overflow:auto;
+      border-radius: 16px;
+      background:#fff;
+      border:1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+    }
+    .modal-header{
+      padding: 16px 18px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .modal-header h2{ margin:0; font-size: 18px; }
+    .modal-header p{ margin:4px 0 0 0; color:var(--muted); font-size: 13px; }
+    .modal-body{ padding: 16px 18px 18px 18px; }
+
+    .stepper{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 14px;
+      margin: 10px 0 16px 0;
+      color: #64748b;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .step{ display:flex; align-items:center; gap:8px; }
+    .step-dot{
+      width:26px; height:26px; border-radius:999px;
+      background:#e2e8f0; border:1px solid #cbd5e1;
+      display:flex; align-items:center; justify-content:center;
+      font-size: 12px; color:#334155;
+    }
+    .step.active .step-dot{ background:#e0f2fe; border-color:#bae6fd; color:#075985; }
+    .step.done .step-dot{ background:#dcfce7; border-color:#bbf7d0; color:#065f46; }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .form-field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .form-field label{ font-size: 12px; color:#334155; font-weight:700; }
+    .form-field input, .form-field textarea{
+      padding: 10px 12px;
+      border-radius: 10px;
+      border:1px solid var(--border);
+      outline:none;
+      font-size: 13px;
+    }
+    .form-field textarea{ min-height: 110px; resize: vertical; }
+    .span-2{ grid-column: 1 / -1; }
+
+    .split{
+      display:grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 14px;
+      align-items:start;
+    }
+    .dropzone{
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 18px;
+      text-align:center;
+      color: var(--muted);
+      background:#f8fafc;
+    }
+    .listbox{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background:#fff;
+    }
+    .list-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 10px 10px;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 10px;
+      font-size: 13px;
+      color:#0f172a;
+      background:#fff;
+    }
+    .icon-btn{
+      padding: 7px 10px;
+      border-radius: 10px;
+      border:1px solid var(--border);
+      background:#fff;
+      cursor:pointer;
+      font-weight:700;
+      color:#334155;
+    }
+
+    .modal-footer{
+      padding: 14px 18px;
+      border-top:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    .btn-secondary{
+      padding: 10px 14px;
+      border-radius: 10px;
+      border:1px solid #cbd5e1;
+      background:#fff;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn-success{
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #bbf7d0;
+      background: #10b981;
+      color:#fff;
+      cursor:pointer;
+      font-weight:800;
+    }
+
+    /* Campaign Auto-fill fields (moved from dashboard) */
+    .fill-form-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .fill-form-field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .fill-form-field label{
+      font-size: 12px;
+      color: #334155;
+      font-weight: 650;
+    }
+    .fill-form-field input, .fill-form-field textarea{
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      font-size: 13px;
+      outline:none;
+    }
+    .fill-form-field textarea{
+      min-height: 90px;
+      resize: vertical;
+    }
+    .muted-note{ color:var(--muted); font-size:12px; margin-top:6px; }
+
+    .progress-container{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top:10px;
+    }
+    .progress-bar{
+      width: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--brand), #60a5fa);
+      border-radius: 999px;
+      transition: width 0.3s;
+    }
+
+    @media (max-width: 860px){
+      .form-grid{ grid-template-columns: 1fr; }
+      .split{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge" aria-hidden="true"></div>
+        <div>Operations Hub</div>
+      </div>
+
+      <nav class="navtabs" aria-label="Primary">
+        <div class="tab active" data-page="dashboard">Dashboard</div>
+        <div class="tab" data-page="campaigns">Campaigns</div>
+        <div class="tab" data-page="websites">Websites</div>
+        <div class="tab" data-page="settings">Settings</div>
+      </nav>
+
+      <div class="userpill">
+        <div class="avatar" title="Profile">AD</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" class="page active">
+      <div class="container">
+        <div class="header">
+          <h1>Dashboard</h1>
+          <p>Core monitoring panels (extra tables & auto-fill moved into Campaigns).</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-label">Websites in database</div>
+            <div class="stat-value" id="websites-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Visited at least once</div>
+            <div class="stat-value" id="visited-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Websites with forms found</div>
+            <div class="stat-value" id="forms-found-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">CAPTCHA encountered</div>
+            <div class="stat-value" id="captcha-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Dead sites (no form)</div>
+            <div class="stat-value" id="dead-sites-count">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Sites with 0 fields</div>
+            <div class="stat-value" id="zero-fields-count">-</div>
+          </div>
+        </div>
+
+        <!-- (1) Websites & Their Form Fields -->
+        <div class="section">
+          <h2>Websites & Their Form Fields <span class="tag">Click to expand</span></h2>
+          <div id="websites-fields-list">Loading...</div>
+          <div class="pager">
+            <button id="ws-prev">&laquo; Prev</button>
+            <span id="ws-page-indicator">Page 1</span>
+            <button id="ws-next">Next &raquo;</button>
+          </div>
+        </div>
+
+        <!-- (2) Dead Sites -->
+        <div class="section">
+          <h2>Dead Sites (form not found)</h2>
+          <div id="dead-sites-list">Loading...</div>
+          <div class="pager">
+            <button id="dead-prev">&laquo; Prev</button>
+            <span id="dead-page-indicator">Page 1</span>
+            <button id="dead-next">Next &raquo;</button>
+          </div>
+        </div>
+
+        <!-- (3) Zero Field Sites -->
+        <div class="section">
+          <h2>Sites With 0 Fields</h2>
+          <div id="zero-sites-list">Loading...</div>
+          <div class="pager">
+            <button id="zero-prev">&laquo; Prev</button>
+            <span id="zero-page-indicator">Page 1</span>
+            <button id="zero-next">Next &raquo;</button>
+          </div>
+        </div>
+
+        <!-- Keep these two analytics panels -->
+        <div class="section">
+          <h2>Field Frequency Across Forms <span class="tag">How many times</span></h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Field Name</th>
+                <th>Frequency (Total Occurrences)</th>
+              </tr>
+            </thead>
+            <tbody id="frequency-body">
+              <tr><td colspan="2">Loading...</td></tr>
+            </tbody>
+          </table>
+          <div class="pager">
+            <button id="freq-prev">&laquo; Prev</button>
+            <span id="freq-page-indicator">Page 1</span>
+            <button id="freq-next">Next &raquo;</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Field Cluster Key Mapping <span class="tag">cluster_key</span></h2>
+          <div id="mapping-list">Loading...</div>
+          <div class="pager">
+            <button id="mapping-prev">&laquo; Prev</button>
+            <span id="mapping-page-indicator">Page 1</span>
+            <button id="mapping-next">Next &raquo;</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CAMPAIGNS -->
+    <section id="page-campaigns" class="page">
+      <div class="page-title">
+        <div>
+          <h1>Campaigns Overview</h1>
+          <p>Create campaigns and run automated form submissions.</p>
+        </div>
+        <button class="btn-primary" id="btn-new-campaign">+ New Campaign</button>
+      </div>
+
+      <div class="filters">
+        <select class="select">
+          <option>All Statuses</option>
+          <option>Running</option>
+          <option>Completed</option>
+          <option>Paused</option>
+          <option>Error</option>
+        </select>
+        <select class="select">
+          <option>Date Created (Newest)</option>
+          <option>Date Created (Oldest)</option>
+        </select>
+      </div>
+
+      <div class="campaign-grid">
+        <div class="card campaign-card">
+          <div class="campaign-head">
+            <h3 class="campaign-name">Lead Gen - Q4 2023 - US</h3>
+            <span class="pill running">RUNNING</span>
+          </div>
+          <div class="campaign-progress"><span>850 / 1000 completed</span><span>85%</span></div>
+          <div class="bar"><div style="width:85%"></div></div>
+          <div class="campaign-meta">
+            <span>Started: 2023-10-01</span>
+            <span>Last Activity: 5 mins ago</span>
+          </div>
+          <div class="campaign-actions">
+            <button class="btn-ghost">Details</button>
+            <button class="btn-ghost">Pause</button>
+          </div>
+        </div>
+
+        <div class="card campaign-card">
+          <div class="campaign-head">
+            <h3 class="campaign-name">Product Launch - Q3 2023</h3>
+            <span class="pill completed">COMPLETED</span>
+          </div>
+          <div class="campaign-progress"><span>1500 / 1500 completed</span><span>100%</span></div>
+          <div class="bar green"><div style="width:100%"></div></div>
+          <div class="campaign-meta">
+            <span>Started: 2023-07-15</span>
+            <span>Last Activity: 2 days ago</span>
+          </div>
+          <div class="campaign-actions">
+            <button class="btn-ghost">Details</button>
+            <button class="btn-ghost">Restart</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEBSITES (placeholder) -->
+    <section id="page-websites" class="page">
+      <div class="card" style="padding:18px;">
+        <h1 style="margin:0 0 8px 0; font-size: 26px;">Websites</h1>
+        <p style="margin:0; color:var(--muted); font-size: 13px;">
+          This page will hold website lists and per-website views.
+        </p>
+      </div>
+    </section>
+
+    <!-- SETTINGS (placeholder) -->
+    <section id="page-settings" class="page">
+      <div class="card" style="padding:18px;">
+        <h1 style="margin:0 0 8px 0; font-size: 26px;">Settings</h1>
+        <p style="margin:0; color:var(--muted); font-size: 13px;">
+          This page will hold profile defaults and configuration.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- New Campaign Modal Wizard -->
+  <div class="modal-backdrop" id="campaign-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="campaign-modal-title">
+      <div class="modal-header">
+        <div>
+          <h2 id="campaign-modal-title">New Campaign</h2>
+          <p>Details → Websites → Form Fields → Review → Launch</p>
+        </div>
+        <button class="btn-secondary" id="btn-close-campaign">Close</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="stepper" id="stepper">
+          <div class="step active" data-step="1"><div class="step-dot">1</div> Details</div>
+          <div style="width:60px; height:2px; background:#e2e8f0;"></div>
+          <div class="step" data-step="2"><div class="step-dot">2</div> Websites</div>
+          <div style="width:60px; height:2px; background:#e2e8f0;"></div>
+          <div class="step" data-step="3"><div class="step-dot">3</div> Form Fields</div>
+          <div style="width:60px; height:2px; background:#e2e8f0;"></div>
+          <div class="step" data-step="4"><div class="step-dot">4</div> Review</div>
+        </div>
+
+        <!-- Step 1: Details -->
+        <div id="wizard-step-1">
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Campaign Name</label>
+              <input id="camp-name" placeholder="e.g., Lead Generation Q3 2025" />
+            </div>
+            <div class="form-field">
+              <label>Campaign Description</label>
+              <input id="camp-desc" placeholder="Briefly describe the purpose of this campaign." />
+            </div>
+
+            <div class="form-field">
+              <label>Sender Name</label>
+              <input id="sender-name" placeholder="e.g., John Doe" />
+            </div>
+            <div class="form-field">
+              <label>Sender Email</label>
+              <input id="sender-email" placeholder="e.g., contact@example.com" />
+            </div>
+
+            <div class="form-field">
+              <label>Subject Line</label>
+              <input id="subject-line" placeholder="e.g., Partnership opportunity" />
+            </div>
+            <div class="form-field span-2">
+              <label>Message Body</label>
+              <textarea id="message-body" placeholder="Write the message to be sent via contact forms."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Websites -->
+        <div id="wizard-step-2" style="display:none;">
+          <div class="split">
+            <div>
+              <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+                <h3 style="margin:0 0 12px 0; font-size: 16px;">Add Single Website</h3>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                  <input id="single-url" class="select" style="flex:1; min-width:240px;" placeholder="e.g., https://example.com/contact" />
+                  <button class="btn-primary" id="btn-add-url" style="box-shadow:none;">Add</button>
+                </div>
+
+                <div style="height:12px;"></div>
+
+                <h3 style="margin:0 0 12px 0; font-size: 16px;">Import from File (CSV)</h3>
+                <div class="dropzone">
+                  Drag & Drop your CSV file here, or<br/><br/>
+                  <input type="file" id="csv-file" accept=".csv" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="listbox">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                  <h3 style="margin:0; font-size:16px;">Added Websites</h3>
+                  <div style="color:var(--muted); font-size:12px;" id="added-count">0 websites added</div>
+                </div>
+                <div id="added-sites"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Form Fields (moved Smart Auto-Fill here) -->
+        <div id="wizard-step-3" style="display:none;">
+          <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <div>
+                <h3 style="margin:0 0 6px 0;">Form Fields</h3>
+                <div class="muted-note">These fields are auto-detected from your database (same template you had in Dashboard).</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <label style="font-size:12px; color:#334155; font-weight:700;">Max websites</label>
+                <input id="camp-max-websites" class="select" style="width:140px;" type="number" min="1" max="5000" value="50" />
+              </div>
+            </div>
+
+            <div id="camp-fields-loading" class="muted-note" style="margin-top:10px;">Loading form template...</div>
+
+            <div id="camp-section-essential" style="display:none;">
+              <h4 style="margin:14px 0 8px 0; color:#1d4ed8;">Essential</h4>
+              <div class="fill-form-grid" id="camp-essential-fields"></div>
+            </div>
+
+            <div id="camp-section-common" style="display:none;">
+              <h4 style="margin:14px 0 8px 0; color:#475569;">
+                <span style="cursor:pointer; user-select:none;" onclick="toggleCampaignSection('common')">Common (toggle)</span>
+              </h4>
+              <div class="fill-form-grid" id="camp-common-fields" style="display:none;"></div>
+            </div>
+
+            <div id="camp-section-optional" style="display:none;">
+              <h4 style="margin:14px 0 8px 0; color:#475569;">
+                <span style="cursor:pointer; user-select:none;" onclick="toggleCampaignSection('optional')">Optional (toggle)</span>
+              </h4>
+              <div class="fill-form-grid" id="camp-optional-fields" style="display:none;"></div>
+            </div>
+
+            <div id="camp-field-stats" class="progress-container" style="display:none;">
+              <div style="font-size:12px; color:var(--muted);" id="camp-stats-text">Loading stats...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Review -->
+        <div id="wizard-step-4" style="display:none;">
+          <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+            <h3 style="margin:0 0 10px 0;">Campaign Details Summary</h3>
+            <div style="display:grid; grid-template-columns: 1fr; gap:8px; font-size:13px;">
+              <div><strong>Campaign Name:</strong> <span id="rev-name">-</span></div>
+              <div><strong>Description:</strong> <span id="rev-desc">-</span></div>
+              <div><strong>Sender Name:</strong> <span id="rev-sender-name">-</span></div>
+              <div><strong>Sender Email:</strong> <span id="rev-sender-email">-</span></div>
+              <div><strong>Subject Line:</strong> <span id="rev-subject">-</span></div>
+              <div><strong>Message Body:</strong> <span id="rev-message">-</span></div>
+              <div><strong>Max websites:</strong> <span id="rev-max">-</span></div>
+            </div>
+          </div>
+
+          <div style="height:12px;"></div>
+
+          <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+            <h3 style="margin:0 0 10px 0;">Targets</h3>
+            <div style="color:var(--muted); font-size:13px; margin-bottom:10px;">
+              Total Websites: <strong id="rev-total">0</strong>
+            </div>
+            <div id="rev-sites" style="max-height:180px; overflow:auto; border:1px solid var(--border); border-radius: 12px; padding:10px;"></div>
+          </div>
+
+          <div style="height:12px;"></div>
+
+          <div class="card" style="padding:14px; border:1px solid var(--border); box-shadow:none;">
+            <label style="display:flex; align-items:center; gap:10px; font-size:13px; color:#334155;">
+              <input type="checkbox" id="confirm-launch" />
+              I understand launching will run automated submissions for the listed websites.
+            </label>
+          </div>
+
+          <div id="camp-launch-progress" class="progress-container" style="display:none;">
+            <div class="progress-bar" id="camp-progress-bar" style="width:0;"></div>
+            <div id="camp-progress-text" style="font-size:12px; color:var(--muted); margin-top: 6px;">Starting...</div>
+            <div id="camp-launch-result" style="font-size:12px; margin-top:6px; color:var(--muted);">Ready</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn-secondary" id="btn-prev-step">Previous Step</button>
+          <button class="btn-secondary" id="btn-next-step">Next Step</button>
+        </div>
+        <button class="btn-success" id="btn-launch" disabled>Launch Campaign</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ======================
+    // Config
+    // ======================
+    const APIBASE = "http://127.0.0.1:8000/api";
+
+    // ======================
+    // Helpers
+    // ======================
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+      }[s]));
+    }
+
+    async function safeFetchJSON(path) {
+      const url = `${APIBASE}${path}`;
+      const resp = await fetch(url);
+      const text = await resp.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch (e) {}
+      if (!resp.ok) {
+        const hint = data && (data.detail || data.message) ? ` - ${data.detail || data.message}` : "";
+        throw new Error(`${resp.status} ${resp.statusText} (${url})${hint}`);
+      }
+      return data;
+    }
+
+    function showErr(containerId, err) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      el.innerHTML = `<div class="errbox">
+        <div style="font-weight:800; margin-bottom:4px;">Error</div>
+        <div>${escapeHtml(err.message || String(err))}</div>
+        <div style="margin-top:6px; opacity:.9;">Tip: open DevTools → Console/Network and verify endpoint exists (no 404) and API server is running.</div>
+      </div>`;
+    }
+
+    // ======================
+    // Dashboard state
+    // ======================
+    let websitesFieldsPage = 0;
+    let deadSitesPage = 0;
+    let zeroSitesPage = 0;
+
+    const WSPAGESIZE = 10;
+    const DEADPAGESIZE = 10;
+    const ZEROPAGESIZE = 10;
+
+    let freqData = [];
+    let freqPage = 0;
+    const FREQPAGESIZE = 10;
+
+    let mappingData = [];
+    let mappingPage = 0;
+    const MAPPINGPAGESIZE = 10;
+
+    let deadSitesTotal = 0;
+    let zeroSitesTotal = 0;
+
+    async function loadDashboard() {
+      try {
+        const webData = await safeFetchJSON(`/websites`);
+
+        document.getElementById("websites-count").textContent = webData.total ?? 0;
+        document.getElementById("visited-count").textContent = webData.visited ?? 0;
+        // backend sometimes returns formsTotal/formstotal depending on build
+        document.getElementById("forms-found-count").textContent = (webData.formsTotal ?? webData.formstotal ?? 0);
+        document.getElementById("captcha-count").textContent = (webData.captchaTotal ?? webData.captchatotal ?? 0);
+        document.getElementById("dead-sites-count").textContent = (webData.deadSites ?? webData.deadsites ?? 0);
+        document.getElementById("zero-fields-count").textContent = (webData.zeroFieldSites ?? webData.zerofieldsites ?? 0);
+
+        deadSitesTotal = (webData.deadSites ?? webData.deadsites ?? 0);
+        zeroSitesTotal = (webData.zeroFieldSites ?? webData.zerofieldsites ?? 0);
+
+        await loadWebsitesFields();
+        await loadDeadSites();
+        await loadZeroFieldSites();
+        await loadFieldFrequency();
+        await loadFieldMapping();
+      } catch (err) {
+        console.error("Dashboard load error", err);
+      }
+    }
+
+    async function loadWebsitesFields() {
+      try {
+        const data = await safeFetchJSON(`/websites-with-fields?skip=${websitesFieldsPage * WSPAGESIZE}&limit=${WSPAGESIZE}`);
+        const sites = data.items || [];
+        const container = document.getElementById("websites-fields-list");
+
+        if (!sites.length) {
+          container.textContent = "No websites with form fields yet.";
+        } else {
+          let html = "";
+          for (const ws of sites) {
+            const seen = new Set();
+            const labels = [];
+            for (const f of (ws.fields || [])) {
+              const label = (f.placeholder || f.fieldname || "unknown").trim();
+              if (!seen.has(label)) {
+                seen.add(label);
+                labels.push(label);
+              }
+            }
+            const fieldsList = labels.length
+              ? labels.map(label => `<span class="field-tag">${escapeHtml(label)}</span>`).join("")
+              : "No fields";
+
+            html += `
+              <div class="website-item" onclick="toggleFields(this)">
+                <div class="website-url">${escapeHtml(ws.url || "")}</div>
+                <div class="website-count">${labels.length} unique fields</div>
+                <div class="website-fields">${fieldsList}</div>
+              </div>
+            `;
+          }
+          container.innerHTML = html;
+        }
+        document.getElementById("ws-page-indicator").textContent = `Page ${websitesFieldsPage + 1}`;
+      } catch (err) {
+        console.error("websites-with-fields error", err);
+        showErr("websites-fields-list", err);
+      }
+    }
+
+    function toggleFields(element) {
+      const fieldsDiv = element.querySelector(".website-fields");
+      fieldsDiv.classList.toggle("open");
+    }
+
+    async function loadDeadSites() {
+      try {
+        const data = await safeFetchJSON(`/dead-sites?skip=${deadSitesPage * DEADPAGESIZE}&limit=${DEADPAGESIZE}`);
+        const items = data.items || [];
+        deadSitesTotal = (data.total ?? deadSitesTotal);
+
+        const container = document.getElementById("dead-sites-list");
+        if (!items.length) {
+          container.textContent = "No dead sites.";
+        } else {
+          let html = `<table><thead><tr><th>#</th><th>Website ID</th><th>URL</th></tr></thead><tbody>`;
+          items.forEach((item, idx) => {
+            const index = deadSitesPage * DEADPAGESIZE + idx + 1;
+            html += `<tr><td>${index}</td><td>${escapeHtml(String(item.id ?? ""))}</td><td>${escapeHtml(item.url ?? "")}</td></tr>`;
+          });
+          html += `</tbody></table>`;
+          container.innerHTML = html;
+        }
+
+        document.getElementById("dead-page-indicator").textContent = `Page ${deadSitesPage + 1}`;
+        const maxPage = Math.max(0, Math.ceil(deadSitesTotal / DEADPAGESIZE) - 1);
+        document.getElementById("dead-prev").disabled = deadSitesPage === 0;
+        document.getElementById("dead-next").disabled = deadSitesPage >= maxPage;
+      } catch (err) {
+        console.error("dead-sites error", err);
+        showErr("dead-sites-list", err);
+      }
+    }
+
+    async function loadZeroFieldSites() {
+      try {
+        const data = await safeFetchJSON(`/zero-field-sites?skip=${zeroSitesPage * ZEROPAGESIZE}&limit=${ZEROPAGESIZE}`);
+        const items = data.items || [];
+        zeroSitesTotal = (data.total ?? data.totalzero ?? data.zerofieldsites ?? zeroSitesTotal);
+
+        const container = document.getElementById("zero-sites-list");
+        if (!items.length) {
+          container.textContent = "No zero-field sites.";
+        } else {
+          let html = `<table><thead><tr><th>#</th><th>Website ID</th><th>URL</th></tr></thead><tbody>`;
+          items.forEach((item, idx) => {
+            const index = zeroSitesPage * ZEROPAGESIZE + idx + 1;
+            html += `<tr><td>${index}</td><td>${escapeHtml(String(item.id ?? ""))}</td><td>${escapeHtml(item.url ?? "")}</td></tr>`;
+          });
+          html += `</tbody></table>`;
+          container.innerHTML = html;
+        }
+
+        document.getElementById("zero-page-indicator").textContent = `Page ${zeroSitesPage + 1}`;
+        const maxPage = Math.max(0, Math.ceil(zeroSitesTotal / ZEROPAGESIZE) - 1);
+        document.getElementById("zero-prev").disabled = zeroSitesPage === 0;
+        document.getElementById("zero-next").disabled = zeroSitesPage >= maxPage;
+      } catch (err) {
+        console.error("zero-field-sites error", err);
+        showErr("zero-sites-list", err);
+      }
+    }
+
+    async function loadFieldFrequency() {
+      try {
+        const resp = await fetch(`${APIBASE}/field-frequency`);
+        if (!resp.ok) throw new Error("field-frequency " + resp.status);
+        const data = await resp.json();
+        freqData = data.items || [];
+        freqPage = 0;
+        renderFieldFrequency();
+      } catch (err) {
+        console.error("field-frequency error", err);
+        document.getElementById("frequency-body").innerHTML =
+          '<tr><td colspan="2">Error loading frequency data.</td></tr>';
+      }
+    }
+
+
+
+
+    function renderFieldFrequency() {
+      const tbody = document.getElementById("frequency-body");
+      if (!freqData.length) {
+        tbody.innerHTML = `<tr><td colspan="2">No frequency data.</td></tr>`;
+        return;
+      }
+
+      const start = freqPage * FREQPAGESIZE;
+      const pageItems = freqData.slice(start, start + FREQPAGESIZE);
+
+      let html = "";
+      for (const f of pageItems) {
+        html += `<tr><td>${escapeHtml(f.field ?? "")}</td><td>${escapeHtml(String(f.frequency ?? ""))}</td></tr>`;
+      }
+      tbody.innerHTML = html;
+
+      const maxPage = Math.max(0, Math.ceil(freqData.length / FREQPAGESIZE) - 1);
+      document.getElementById("freq-prev").disabled = freqPage === 0;
+      document.getElementById("freq-next").disabled = freqPage >= maxPage;
+      document.getElementById("freq-page-indicator").textContent = `Page ${freqPage + 1} / ${maxPage + 1}`;
+    }
+
+    async function loadFieldMapping() {
+      try {
+        const data = await safeFetchJSON(`/field-mapping`);
+        mappingData = data.items || [];
+        mappingPage = 0;
+        renderFieldMapping();
+      } catch (err) {
+        console.error("field-mapping error", err);
+        showErr("mapping-list", err);
+      }
+    }
+
+    function renderFieldMapping() {
+      const container = document.getElementById("mapping-list");
+      if (!mappingData.length) {
+        container.textContent = "No mapping data.";
+        return;
+      }
+
+      const start = mappingPage * MAPPINGPAGESIZE;
+      const pageItems = mappingData.slice(start, start + MAPPINGPAGESIZE);
+
+      let html = `<table><thead><tr><th>Cluster Key</th><th>Total Fields</th></tr></thead><tbody>`;
+      for (const m of pageItems) {
+        const cluster = (m.clusterkey ?? m.clusterkey ?? "");
+        const count = (m.fieldCount ?? m.fieldcount ?? "");
+        html += `<tr><td>${escapeHtml(cluster)}</td><td><strong>${escapeHtml(String(count))}</strong></td></tr>`;
+      }
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+
+      const maxPage = Math.max(0, Math.ceil(mappingData.length / MAPPINGPAGESIZE) - 1);
+      document.getElementById("mapping-prev").disabled = mappingPage === 0;
+      document.getElementById("mapping-next").disabled = mappingPage >= maxPage;
+      document.getElementById("mapping-page-indicator").textContent = `Page ${mappingPage + 1} / ${maxPage + 1}`;
+    }
+
+    // Pagination bindings
+    document.getElementById("ws-prev").onclick = () => { websitesFieldsPage = Math.max(0, websitesFieldsPage - 1); loadWebsitesFields(); };
+    document.getElementById("ws-next").onclick = () => { websitesFieldsPage += 1; loadWebsitesFields(); };
+
+    document.getElementById("dead-prev").onclick = () => { deadSitesPage = Math.max(0, deadSitesPage - 1); loadDeadSites(); };
+    document.getElementById("dead-next").onclick = () => { deadSitesPage += 1; loadDeadSites(); };
+
+    document.getElementById("zero-prev").onclick = () => { zeroSitesPage = Math.max(0, zeroSitesPage - 1); loadZeroFieldSites(); };
+    document.getElementById("zero-next").onclick = () => { zeroSitesPage += 1; loadZeroFieldSites(); };
+
+    document.getElementById("freq-prev").onclick = () => { freqPage = Math.max(0, freqPage - 1); renderFieldFrequency(); };
+    document.getElementById("freq-next").onclick = () => {
+      const maxPage = Math.max(0, Math.ceil(freqData.length / FREQPAGESIZE) - 1);
+      freqPage = Math.min(maxPage, freqPage + 1);
+      renderFieldFrequency();
+    };
+
+    document.getElementById("mapping-prev").onclick = () => { mappingPage = Math.max(0, mappingPage - 1); renderFieldMapping(); };
+    document.getElementById("mapping-next").onclick = () => {
+      const maxPage = Math.max(0, Math.ceil(mappingData.length / MAPPINGPAGESIZE) - 1);
+      mappingPage = Math.min(maxPage, mappingPage + 1);
+      renderFieldMapping();
+    };
+
+    // ======================
+    // Top tabs (UI only)
+    // ======================
+    const tabs = document.querySelectorAll(".tab");
+    const pages = {
+      dashboard: document.getElementById("page-dashboard"),
+      campaigns: document.getElementById("page-campaigns"),
+      websites: document.getElementById("page-websites"),
+      settings: document.getElementById("page-settings"),
+    };
+
+    tabs.forEach(t => {
+      t.addEventListener("click", () => {
+        const key = t.getAttribute("data-page");
+        tabs.forEach(x => x.classList.toggle("active", x === t));
+        Object.entries(pages).forEach(([k, el]) => el.classList.toggle("active", k === key));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    // ======================
+    // Campaign wizard logic + moved auto-fill
+    // ======================
+    const modal = document.getElementById("campaign-modal");
+    const btnNew = document.getElementById("btn-new-campaign");
+    const btnClose = document.getElementById("btn-close-campaign");
+    const btnPrev = document.getElementById("btn-prev-step");
+    const btnNext = document.getElementById("btn-next-step");
+    const btnLaunch = document.getElementById("btn-launch");
+    const confirmLaunch = document.getElementById("confirm-launch");
+
+    const stepEls = {
+      1: document.getElementById("wizard-step-1"),
+      2: document.getElementById("wizard-step-2"),
+      3: document.getElementById("wizard-step-3"),
+      4: document.getElementById("wizard-step-4"),
+    };
+
+    let wizardStep = 1;
+    let addedSites = [];
+    let campaignFilling = false;
+
+    function openModal() {
+      modal.classList.add("open");
+      wizardStep = 1;
+      addedSites = [];
+      drawAddedSites();
+      confirmLaunch.checked = false;
+      btnLaunch.disabled = true;
+
+      // load field template for campaign
+      loadCampaignFormTemplate();
+      renderWizard();
+    }
+    function closeModal() {
+      modal.classList.remove("open");
+    }
+
+    function renderWizard() {
+      Object.values(stepEls).forEach(el => el.style.display = "none");
+      stepEls[wizardStep].style.display = "block";
+
+      document.querySelectorAll("#stepper .step").forEach(s => {
+        const n = parseInt(s.getAttribute("data-step"), 10);
+        s.classList.toggle("active", n === wizardStep);
+        s.classList.toggle("done", n < wizardStep);
+      });
+
+      btnPrev.disabled = wizardStep === 1;
+      btnNext.style.display = wizardStep === 4 ? "none" : "inline-block";
+      btnLaunch.style.display = wizardStep === 4 ? "inline-block" : "none";
+
+      if (wizardStep === 4) updateReview();
+      btnLaunch.disabled = !(wizardStep === 4 && confirmLaunch.checked);
+    }
+
+    function updateAddedCount() {
+      document.getElementById("added-count").textContent = `${addedSites.length} websites added`;
+    }
+
+    function addSite(url) {
+      const u = (url || "").trim();
+      if (!u) return;
+      if (addedSites.includes(u)) return;
+      addedSites.push(u);
+      drawAddedSites();
+    }
+
+    function removeSite(url) {
+      addedSites = addedSites.filter(x => x !== url);
+      drawAddedSites();
+    }
+
+    function drawAddedSites() {
+      const holder = document.getElementById("added-sites");
+      if (!addedSites.length) {
+        holder.innerHTML = `<div style="color:var(--muted); font-size:13px; margin-top:10px;">No websites added yet.</div>`;
+      } else {
+        holder.innerHTML = addedSites.map(u => `
+          <div class="list-item">
+            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 420px;">${escapeHtml(u)}</div>
+            <button class="icon-btn" onclick="removeSite('${escapeHtml(u).replace(/'/g, "\\'")}')">Delete</button>
+          </div>
+        `).join("");
+      }
+      updateAddedCount();
+    }
+    window.removeSite = removeSite;
+
+    // Campaign field template (from old dashboard)
+    function toggleCampaignSection(name) {
+      const container = document.getElementById(`camp-${name}-fields`);
+      if (!container) return;
+      container.style.display = (container.style.display === "none" || !container.style.display) ? "grid" : "none";
+    }
+    window.toggleCampaignSection = toggleCampaignSection;
+
+    async function loadCampaignFormTemplate() {
+      const loading = document.getElementById("camp-fields-loading");
+      loading.style.display = "block";
+      loading.textContent = "Loading form template...";
+
+      try {
+        const template = await safeFetchJSON(`/fill-form-template`);
+        loading.style.display = "none";
+
+        // show sections if present
+        const essentials = template.commonFields || template.commonfields || [];
+        const common = template.optionalFields || template.optionalfields || [];
+        const optional = template.rareFields || template.rarefields || [];
+
+        if (essentials.length) {
+          document.getElementById("camp-section-essential").style.display = "block";
+          renderCampaignFieldGroup(essentials, "camp-essential-fields");
+        }
+        if (common.length) {
+          document.getElementById("camp-section-common").style.display = "block";
+          renderCampaignFieldGroup(common, "camp-common-fields");
+          document.getElementById("camp-common-fields").style.display = "none";
+        }
+        if (optional.length) {
+          document.getElementById("camp-section-optional").style.display = "block";
+          renderCampaignFieldGroup(optional, "camp-optional-fields");
+          document.getElementById("camp-optional-fields").style.display = "none";
+        }
+
+        // stats (optional)
+        try {
+          const stats = await safeFetchJSON(`/concept-stats`);
+          const statsBox = document.getElementById("camp-field-stats");
+          statsBox.style.display = "block";
+          document.getElementById("camp-stats-text").innerHTML =
+            `<strong>Form Field Statistics</strong><br/>Active concepts: ${escapeHtml(String(stats.activeConcepts ?? stats.activeconcepts ?? "-"))}<br/>Unmapped fields: ${escapeHtml(String(stats.unmappedFields ?? stats.unmappedfields ?? "-"))}`;
+        } catch (e) {
+          // ignore
+        }
+
+      } catch (err) {
+        console.error("fill-form-template error", err);
+        loading.style.display = "block";
+        loading.innerHTML = `<span style="color:var(--danger); font-weight:700;">Error loading form template:</span> ${escapeHtml(err.message || String(err))}`;
+      }
+    }
+
+    function renderCampaignFieldGroup(fields, containerId) {
+      const container = document.getElementById(containerId);
+      let html = "";
+
+      for (const f of fields) {
+        const concept = f.concept;
+        const id = `camp-field-${concept}`;
+        const human = f.humanName || f.humanname || concept;
+
+        const isTextarea = concept === "message" || concept === "address";
+        if (isTextarea) {
+          html += `
+            <div class="fill-form-field">
+              <label for="${escapeHtml(id)}">${escapeHtml(human)}</label>
+              <textarea id="${escapeHtml(id)}" placeholder="Enter ${escapeHtml(String(human).toLowerCase())}"></textarea>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="fill-form-field">
+              <label for="${escapeHtml(id)}">${escapeHtml(human)}</label>
+              <input id="${escapeHtml(id)}" type="text" placeholder="Enter ${escapeHtml(String(human).toLowerCase())}" />
+            </div>
+          `;
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    function updateReview() {
+      document.getElementById("rev-name").textContent = document
+      function updateReview() {
+      document.getElementById("rev-name").textContent = document.getElementById("camp-name").value || "-";
+      document.getElementById("rev-desc").textContent = document.getElementById("camp-desc").value || "-";
+      document.getElementById("rev-sender-name").textContent = document.getElementById("sender-name").value || "-";
+      document.getElementById("rev-sender-email").textContent = document.getElementById("sender-email").value || "-";
+      document.getElementById("rev-subject").textContent = document.getElementById("subject-line").value || "-";
+
+      const msg = (document.getElementById("message-body").value || "").trim();
+      document.getElementById("rev-message").textContent = msg ? (msg.length > 220 ? msg.slice(0, 220) + "..." : msg) : "-";
+
+      const maxW = (document.getElementById("camp-max-websites").value || "").trim();
+      document.getElementById("rev-max").textContent = maxW || "-";
+
+      document.getElementById("rev-total").textContent = String(addedSites.length);
+      const list = document.getElementById("rev-sites");
+      list.innerHTML = addedSites.length
+        ? addedSites.map(u => `<div style="padding:8px 6px; border-bottom:1px solid var(--border);">${escapeHtml(u)}</div>`).join("")
+        : `<div style="color:var(--muted);">No websites added.</div>`;}
+    }
+
+    function collectCampaignUserData() {
+      // Collect values from Step-3 auto-detected fields
+      const userData = {};
+      document.querySelectorAll('[id^="camp-field-"]').forEach(el => {
+        const concept = el.id.replace("camp-field-", "");
+        const val = (el.value || "").trim();
+        if (val) userData[concept] = val;
+      });
+
+      // Fallback from Step-1 fields into common concepts if user didn't fill them in Step-3
+      const senderName = (document.getElementById("sender-name").value || "").trim();
+      const senderEmail = (document.getElementById("sender-email").value || "").trim();
+      const subject = (document.getElementById("subject-line").value || "").trim();
+      const message = (document.getElementById("message-body").value || "").trim();
+
+      // best-effort mapping to your cluster concepts
+      if (!userData.fullname && senderName) userData.fullname = senderName;
+      if (!userData.name && senderName) userData.name = senderName; // harmless if backend ignores
+      if (!userData.email && senderEmail) userData.email = senderEmail;
+      if (!userData.subject && subject) userData.subject = subject;
+      if (!userData.message && message) userData.message = message;
+
+      // target websites list (backend supports `websites` key)
+      userData.websites = addedSites.slice();
+
+      return userData;
+    }
+
+    async function launchCampaignRun() {
+      if (campaignFilling) return;
+      campaignFilling = true;
+
+      const progressWrap = document.getElementById("camp-launch-progress");
+      const progressBar = document.getElementById("camp-progress-bar");
+      const progressText = document.getElementById("camp-progress-text");
+      const resultEl = document.getElementById("camp-launch-result");
+
+      progressWrap.style.display = "block";
+      progressBar.style.width = "0%";
+      progressText.textContent = "Starting...";
+      resultEl.style.color = "var(--muted)";
+      resultEl.textContent = "Running...";
+
+      try {
+        const maxWebsites = parseInt(document.getElementById("camp-max-websites").value, 10) || 50;
+        const userData = collectCampaignUserData();
+
+        if (!addedSites.length) {
+          resultEl.style.color = "var(--danger)";
+          resultEl.textContent = "Add at least 1 website before launching.";
+          progressText.textContent = "Blocked";
+          return;
+        }
+
+        const resp = await fetch(`${APIBASE}/fill-all-forms`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userdata: userData, maxwebsites: maxWebsites })
+        });
+
+        const raw = await resp.text();
+        if (!resp.ok) {
+          throw new Error(`${resp.status} ${resp.statusText} (${raw?.slice(0, 200) || "no body"})`);
+        }
+
+        let done = false;
+        while (!done) {
+          const sResp = await fetch(`${APIBASE}/fill-status`);
+          const status = await sResp.json();
+
+          if (status.running) {
+            const pct = status.total ? (status.progress / status.total) * 100 : 0;
+            progressBar.style.width = `${pct}%`;
+            progressText.textContent = `Processing ${status.progress}/${status.total} websites`;
+            await new Promise(r => setTimeout(r, 1000));
+          } else {
+            done = true;
+            progressBar.style.width = "100%";
+            progressText.textContent = "Completed";
+
+            if (status.results) {
+              resultEl.style.color = "var(--brand-2)";
+              resultEl.textContent =
+                `Complete! Success ${status.results.success} | Failed ${status.results.failed} | CAPTCHA ${status.results.captcha}`;
+            } else {
+              resultEl.style.color = "var(--brand-2)";
+              resultEl.textContent = "Completed.";
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Campaign launch error", err);
+        resultEl.style.color = "var(--danger)";
+        resultEl.textContent = `Error: ${err.message || String(err)}`;
+        progressText.textContent = "Failed";
+      } finally {
+        campaignFilling = false;
+      }
+    }
+
+    // Wizard button handlers
+    btnNew?.addEventListener("click", openModal);
+    btnClose?.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    btnPrev?.addEventListener("click", () => {
+      wizardStep = Math.max(1, wizardStep - 1);
+      renderWizard();
+    });
+
+    btnNext?.addEventListener("click", () => {
+      wizardStep = Math.min(4, wizardStep + 1);
+      renderWizard();
+    });
+
+    confirmLaunch?.addEventListener("change", () => {
+      btnLaunch.disabled = !(wizardStep === 4 && confirmLaunch.checked);
+    });
+
+    document.getElementById("btn-add-url")?.addEventListener("click", () => {
+      const input = document.getElementById("single-url");
+      addSite(input.value);
+      input.value = "";
+    });
+
+    document.getElementById("csv-file")?.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+      for (const line of lines) {
+        // first column as URL
+        const first = line.split(",")[0].trim();
+        if (first) addSite(first);
+      }
+    });
+
+    btnLaunch?.addEventListener("click", async () => {
+      if (!(wizardStep === 4 && confirmLaunch.checked)) return;
+      await launchCampaignRun();
+    });
+
+    // Start dashboard refresh
+    loadDashboard();
+    setInterval(loadDashboard, 30000);
+  </script>
+</body>
+</html>
