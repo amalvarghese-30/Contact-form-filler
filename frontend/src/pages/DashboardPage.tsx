@@ -48,12 +48,12 @@ export function DashboardPage() {
   const s = overview?.submissions || {};
 
   const kpis = [
-    { label: "Total Websites", value: w.total ?? 0, sub: `${w.scanned ?? 0} scanned`, icon: Globe, color: "text-blue-600" },
-    { label: "Forms Discovered", value: w.with_forms ?? 0, sub: `${w.without_forms ?? 0} without forms`, icon: FileCheck2, color: "text-emerald-600" },
-    { label: "CAPTCHA Protected", value: w.captcha ?? 0, sub: "Marked for review", icon: ShieldAlert, color: "text-amber-600" },
-    { label: "Campaigns", value: c.total ?? 0, sub: `${c.active ?? 0} active · ${c.completed ?? 0} done`, icon: Megaphone, color: "text-indigo-600" },
-    { label: "Successful Submissions", value: s.success ?? 0, sub: `${s.total ?? 0} total (${days}d)`, icon: CheckCircle2, color: "text-emerald-600" },
-    { label: "Failed Submissions", value: s.failed ?? 0, sub: `${s.captcha ?? 0} CAPTCHA blocked`, icon: XCircle, color: "text-rose-600" },
+    { label: "Total Websites", value: w.total ?? 0, sub: `${w.scanned ?? 0} scanned`, icon: Globe, iconBg: "bg-indigo-50 text-indigo-600 border-indigo-100" },
+    { label: "Forms Discovered", value: w.with_forms ?? 0, sub: `${w.without_forms ?? 0} without forms`, icon: FileCheck2, iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+    { label: "CAPTCHA Protected", value: w.captcha ?? 0, sub: "Marked for review", icon: ShieldAlert, iconBg: "bg-amber-50 text-amber-600 border-amber-100" },
+    { label: "Campaigns", value: c.total ?? 0, sub: `${c.active ?? 0} active · ${c.completed ?? 0} done`, icon: Megaphone, iconBg: "bg-blue-50 text-blue-600 border-blue-100" },
+    { label: "Successful Submissions", value: s.success ?? 0, sub: `${s.total ?? 0} total (${days}d)`, icon: CheckCircle2, iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+    { label: "Failed Submissions", value: s.failed ?? 0, sub: `${s.captcha ?? 0} CAPTCHA blocked`, icon: XCircle, iconBg: "bg-rose-50 text-rose-600 border-rose-100" },
   ];
 
   return (
@@ -117,11 +117,11 @@ export function DashboardPage() {
                 ) : (
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{k.label}</p>
-                      <p className="mt-2 text-2xl font-semibold text-slate-900">{Number(k.value).toLocaleString()}</p>
+                      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{k.label}</p>
+                      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 tabular-nums">{Number(k.value).toLocaleString()}</p>
                       <p className="mt-1 text-xs text-slate-500">{k.sub}</p>
                     </div>
-                    <div className={`rounded-md bg-slate-50 p-2 border ${k.color}`}>
+                    <div className={`rounded-lg p-2.5 border ${k.iconBg}`}>
                       <Icon className="h-4 w-4" />
                     </div>
                   </div>
@@ -152,7 +152,7 @@ export function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748b" }} />
                   <YAxis tick={{ fontSize: 11, fill: "#64748b" }} />
-                  <Tooltip />
+                  <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(15,23,42,0.08)", fontSize: "12px" }} />
                   <Area type="monotone" dataKey="success" stroke="#10b981" fill="#10b981" fillOpacity={0.15} name="Success" />
                   <Area type="monotone" dataKey="failed" stroke="#ef4444" fill="#ef4444" fillOpacity={0.12} name="Failed" />
                 </AreaChart>
@@ -179,7 +179,7 @@ export function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} />
                   <YAxis tick={{ fontSize: 11, fill: "#64748b" }} />
-                  <Tooltip />
+                  <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(15,23,42,0.08)", fontSize: "12px" }} />
                   <Bar dataKey="success" fill="#10b981" radius={[3, 3, 0, 0]} name="Success" />
                   <Bar dataKey="failed" fill="#ef4444" radius={[3, 3, 0, 0]} name="Failed" />
                   <Bar dataKey="captcha" fill="#f59e0b" radius={[3, 3, 0, 0]} name="CAPTCHA" />

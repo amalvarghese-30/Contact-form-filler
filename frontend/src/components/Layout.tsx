@@ -46,14 +46,14 @@ export function Layout() {
   const dbConnected = health?.database === "connected";
 
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-white border-r border-slate-200">
-      <div className="flex h-14 items-center gap-2.5 px-5 border-b border-slate-200">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-600 text-white">
+    <div className="flex h-full flex-col bg-white border-r border-slate-200/80">
+      <div className="flex h-14 items-center gap-2.5 px-5 border-b border-slate-200/80">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-sm shadow-indigo-600/20">
           <Activity className="h-4 w-4" />
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-semibold tracking-tight text-slate-900">FormFlow</span>
-          <span className="text-[11px] text-slate-500 leading-none">Contact Automation</span>
+          <span className="text-[11px] font-medium text-slate-400 leading-none">Contact Automation</span>
         </div>
       </div>
 
@@ -67,10 +67,10 @@ export function Layout() {
               end={item.end}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
                   isActive
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-indigo-50/90 text-indigo-700 shadow-[inset_0_0_0_1px_rgba(79,70,229,0.12)]"
+                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                 )
               }
             >
@@ -81,14 +81,14 @@ export function Layout() {
         })}
       </nav>
 
-      <div className="border-t border-slate-200 p-4">
+      <div className="border-t border-slate-200/80 p-4 bg-slate-50/50">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-slate-500">System Status</span>
+          <span className="font-medium text-slate-500">System Status</span>
           <span className="inline-flex items-center gap-1.5 font-medium text-slate-700">
             <span
               className={cn(
                 "h-2 w-2 rounded-full",
-                health ? (dbConnected ? "bg-emerald-500" : "bg-amber-500") : "bg-slate-300"
+                health ? (dbConnected ? "bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.15)]" : "bg-amber-500") : "bg-slate-300"
               )}
             />
             {health ? (dbConnected ? "Online" : "DB Offline") : "Connecting"}
@@ -99,7 +99,7 @@ export function Layout() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-[#F8FAFC] flex">
       {/* Desktop sidebar */}
       <aside className="hidden lg:block lg:w-60 lg:shrink-0 lg:sticky lg:top-0 lg:h-screen">
         {sidebarContent}
