@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, parse_qsl, urlencode, urljoin, urlparse, urlu
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
-from playwright.async_api import async_playwright, Browser, BrowserContext, Frame, Locator, Page
+from playwright.async_api import async_playwright, Browser, BrowserContext, Frame, Locator, Page, TimeoutError as PlaywrightTimeout
 
 # ---------- OPTIONAL MySQL ----------
 try:
