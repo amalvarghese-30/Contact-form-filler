@@ -1,7 +1,7 @@
 import * as React from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Plus, Search, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export function CampaignWizardPage() {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [step, setStep] = React.useState(1);
 
   // Step 1
@@ -37,6 +38,8 @@ export function CampaignWizardPage() {
   const [siteSearch, setSiteSearch] = React.useState("");
   const [selectedUrls, setSelectedUrls] = React.useState<string[]>([]);
   const [manualUrls, setManualUrls] = React.useState("");
+  const [newSiteUrl, setNewSiteUrl] = React.useState("");
+  const csvFileRef = React.useRef<HTMLInputElement>(null);
 
   // Step 3
   const [strategies, setStrategies] = React.useState<Record<string, { strategy: string; value: string }>>({
@@ -141,6 +144,51 @@ export function CampaignWizardPage() {
 
   const toggleUrl = (url: string) => {
     setSelectedUrls((prev) => (prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]));
+  };
+
+  const addSingleSiteMutation = useMutation({
+    mutationFn: (raw: string) => api.addWebsite(raw.trim()),
+    onSuccess: (res) => {
+      const addedUrl = res.url || newSiteUrl.trim();
+      setSelectedUrls((prev) => Array.from(new Set([addedUrl, ...prev])));
+      setNewSiteUrl("");
+      qc.invalidateQueries({ queryKey: ["wizard-websites"] });
+      toast.success(`Added and selected ${addedUrl}`);
+    },
+    onError: (e: Error) => {
+      if (e.message.toLowerCase().includes("already exists")) {
+        const candidate = newSiteUrl.trim().includes("://") ? newSiteUrl.trim() : `https://${newSiteUrl.trim()}`;
+        setSelectedUrls((prev) => Array.from(new Set([candidate, ...prev])));
+        setNewSiteUrl("");
+        toast.info("Website already in database — selected for this campaign");
+      } else {
+        toast.error(e.message);
+      }
+    },
+  });
+
+  const handleWizardCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const urls = text
+        .split(/\r?\n/)
+        .map((line) => line.split(",")[0]?.trim() || "")
+        .filter((cell, idx) => cell && !(idx === 0 && ["url", "website", "websites", "website_url"].includes(cell.toLowerCase())));
+      if (urls.length === 0) {
+        toast.error("No valid URLs found in CSV");
+        return;
+      }
+      const res = await api.bulkImportWebsites(urls);
+      setSelectedUrls((prev) => Array.from(new Set([...prev, ...urls.map((u) => (u.includes("://") ? u : `https://${u}`))])))
+      qc.invalidateQueries({ queryKey: ["wizard-websites"] });
+      toast.success(`Imported ${res.added} new website(s) & selected ${urls.length} URL(s)`);
+    } catch (err: any) {
+      toast.error(err.message || "CSV import failed");
+    } finally {
+      e.target.value = "";
+    }
   };
 
   const canProceedStep1 = name.trim().length > 0 && senderEmail.trim().length > 0 && messageBody.trim().length > 0;
@@ -251,6 +299,35 @@ export function CampaignWizardPage() {
             <CardDescription>Choose existing websites from your database or paste new URLs below.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Direct Add New Website */}
+            <div className="flex flex-col sm:flex-row gap-2 rounded-lg border border-slate-200/80 bg-slate-50/70 p-3">
+              <Input
+                className="flex-1 bg-white"
+                placeholder="Add a new website URL directly (e.g. https://example.com)"
+                value={newSiteUrl}
+                onChange={(e) => setNewSiteUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newSiteUrl.trim()) {
+                    e.preventDefault();
+                    addSingleSiteMutation.mutate(newSiteUrl);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                size="sm"
+                disabled={!newSiteUrl.trim() || addSingleSiteMutation.isPending}
+                onClick={() => addSingleSiteMutation.mutate(newSiteUrl)}
+              >
+                <Plus className="h-4 w-4" />
+                {addSingleSiteMutation.isPending ? "Adding..." : "Add Website"}
+              </Button>
+              <input ref={csvFileRef} type="file" accept=".csv" className="hidden" onChange={handleWizardCsvUpload} />
+              <Button type="button" variant="outline" size="sm" onClick={() => csvFileRef.current?.click()}>
+                <Upload className="h-4 w-4" /> Import CSV
+              </Button>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
