@@ -98,6 +98,20 @@ export function CampaignWizardPage() {
     }));
   }, [senderName, senderEmail, subjectLine, messageBody]);
 
+  const uniqueSites = React.useMemo(() => {
+    const items = sitesData?.items || [];
+    const byUrl = new Map<string, any>();
+    const rank = (w: any) => (w.form_found ? 3 : w.has_captcha ? 2 : w.scan_status === "scanned" ? 1 : 0);
+    for (const w of items) {
+      const key = String(w.url || "").trim().replace(/\/+$/, "").toLowerCase();
+      const existing = byUrl.get(key);
+      if (!existing || rank(w) > rank(existing)) {
+        byUrl.set(key, w);
+      }
+    }
+    return Array.from(byUrl.values());
+  }, [sitesData?.items]);
+
   const conceptList = React.useMemo(() => {
     const map = templateData?.canonicalConcepts;
     if (!map) return DEFAULT_CONCEPTS;
@@ -342,7 +356,7 @@ export function CampaignWizardPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  const urls = (sitesData?.items || []).map((w: any) => w.url);
+                  const urls = uniqueSites.map((w: any) => w.url);
                   setSelectedUrls(Array.from(new Set([...selectedUrls, ...urls])));
                 }}
               >
@@ -354,7 +368,7 @@ export function CampaignWizardPage() {
             </div>
 
             <div className="max-h-60 overflow-y-auto rounded-md border divide-y">
-              {(sitesData?.items || []).map((w: any) => {
+              {uniqueSites.map((w: any) => {
                 const checked = selectedUrls.includes(w.url);
                 return (
                   <label key={w.id} className="flex items-center justify-between px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer">
