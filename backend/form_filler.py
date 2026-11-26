@@ -135,6 +135,8 @@ def with_scheme(u: str) -> List[str]:
         return []
     p = urlparse(u)
     if p.scheme:
+        if p.port:
+            return [u]
         alt = u
         try:
             alt_p = p._replace(scheme="https" if p.scheme == "http" else "http")
@@ -1796,6 +1798,12 @@ async def goto_best_contact_page(page: Page, base_url: str, contact_url_override
         # Fallback to top-scoring candidate even if form is rendered lazily or in iframe
         await safe_goto(candidates[0][1])
         return page.url
+
+    try:
+        if await page.locator("form").count() > 0 and await page.locator("input:not([type='hidden']), textarea, select").count() >= 2:
+            return page.url
+    except Exception:
+        pass
 
     try:
         ref = page.url or base_url
